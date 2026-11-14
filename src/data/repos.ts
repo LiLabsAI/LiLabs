@@ -6,20 +6,10 @@ export interface RepoRelease {
   assets: string[];
 }
 
-export interface RepoPipelineNode {
-  id: string;
-  label: string;
-  sublabel: string;
-  metric: string;
-  type: "input" | "compute" | "model" | "dsp" | "storage" | "output";
-}
-
-export interface BestPracticeProposal {
+export interface RepoDetailSection {
+  category: string;
   title: string;
-  category: "Architecture" | "AI / ML" | "Security & Supply Chain" | "Performance" | "Ecosystem";
-  impact: "High" | "Critical" | "Medium";
-  currentPractice: string;
-  proposedUpgrade: string;
+  description: string;
 }
 
 export interface LiLabsRepo {
@@ -28,8 +18,13 @@ export interface LiLabsRepo {
   displayName: string;
   tagline: string;
   description: string;
-  category: "AI & On-Device ML" | "Audio & Media DSP" | "Creative & Shaders" | "Research & Workspace" | "Org & Infrastructure";
-  platforms: ("Android" | "macOS Apple Silicon" | "iOS" | "Cloudflare Edge" | "Web")[];
+  category:
+    | "AI & On-Device ML"
+    | "Audio & Media DSP"
+    | "Creative & Shaders"
+    | "Research & Workspace"
+    | "Org & Infrastructure";
+  platforms: ("Android" | "macOS Apple Silicon" | "Cloudflare Edge" | "Web")[];
   primaryLanguage: string;
   languages: Record<string, number>;
   topics: string[];
@@ -45,11 +40,10 @@ export interface LiLabsRepo {
   featured: boolean;
   latestRelease: RepoRelease | null;
   releases: RepoRelease[];
+  requirements: string[];
   highlights: string[];
   architectureSummary: string;
-  pipelineNodes: RepoPipelineNode[];
-  bestPractices: BestPracticeProposal[];
-  interactiveDemoType?: "offmind-vram" | "livoice-asr" | "lieffects-shader" | "lisound-eq" | "liresearch-doc" | "architecture";
+  details: RepoDetailSection[];
 }
 
 export const LILABS_ORG = {
@@ -63,12 +57,12 @@ export const LILABS_ORG = {
   mission:
     "To make technology smarter, simpler, and more accessible by building innovative software, intelligent applications, and developer tools that solve real-world problems.",
   description:
-    "LI Labs is an independent software and AI research initiative founded by Ali Ahad. We engineer privacy-first on-device AI models, deterministic GPU/audio DSP engines, and local-first workspaces across Android, macOS Apple Silicon, and the Cloudflare Edge.",
+    "LI Labs is an independent software and AI research initiative founded by Ali Ahad. We build intelligent applications, creative tools, and developer-focused software across Android, macOS Apple Silicon, and the web.",
   stats: {
-    publicRepos: 9,
+    publicRepos: 10,
     totalReleases: 24,
-    coreLanguages: ["C++", "Kotlin", "Swift", "TypeScript", "CUDA / Metal / AGSL"],
-    zeroTelemetryApps: 8,
+    coreLanguages: ["C++", "Kotlin", "Swift", "TypeScript", "AGSL / Vulkan / Metal"],
+    license: "GPL-3.0",
   },
 };
 
@@ -77,9 +71,9 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     id: "offmind",
     name: "offmind",
     displayName: "Offmind",
-    tagline: "Private, On-Device Multimodal Android AI Assistant built around Gemma 4 E4B",
+    tagline: "Private, on-device Android assistant built around Gemma 4 E4B with local vision and voice.",
     description:
-      "AIchat is a private, on-device Android assistant built around Gemma 4 E4B. Chats, memory, attachments, skills, and model inference stay 100% on the phone. Zero prompts are sent to any hosted inference service.",
+      "Offmind is a private, on-device Android assistant built around Gemma 4 E4B. Chats, memory, attachments, skills, and model inference stay on the phone. The app does not send prompts to any hosted inference service.",
     category: "AI & On-Device ML",
     platforms: ["Android"],
     primaryLanguage: "C++",
@@ -105,7 +99,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#36c3b0",
+    accentColor: "#facc15",
     featured: true,
     latestRelease: {
       tag: "v1.4.0",
@@ -130,57 +124,63 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["app-release.apk"],
       },
     ],
+    requirements: [
+      "Android 13 or newer (minSdk 33)",
+      "64-bit ARM device (arm64-v8a)",
+      "~4.80 GB storage for Gemma 4 E4B IT Q4 GGUF model",
+      "~946 MB storage for optional Gemma 4 E4B vision projector",
+      "~8 GB total free space recommended during download & setup",
+    ],
     highlights: [
-      "Local Gemma 4 E4B inference using official Q4 GGUF quantized artifacts with SHA-256 verification",
-      "Multimodal text & vision conversations powered by the matching Gemma vision projector",
-      "Dual CPU (ARM64 NEON/i8mm) and Vulkan GPU compute backends with per-device recovery & benchmarking",
-      "Automatic hardware-probed context sizing that verifies safe KV-cache memory limits on device",
-      "Office Memory for private, local semantic recall across conversations + selectable Prompt Skills",
-      "Offline voice call mode with on-device VAD, speech recognition (ASR), and neural speech synthesis (TTS)",
+      "Local Gemma 4 E4B inference using the official Q4 GGUF artifact",
+      "Text and image conversations with the matching Gemma vision projector",
+      "CPU, KleidiAI, OpenMP, and Vulkan backends with per-device recovery and benchmarking",
+      "Automatic context sizing that verifies safe context limits on the device",
+      "Resumable model downloads with pinned artifact revisions, SHA-256 verification, progress, ETA, pause, and retry controls",
+      "Office Memory for optional, private context drawn exclusively from your own conversations",
+      "Prompt skills selectable per message without running arbitrary code",
+      "Offline voice call mode with on-device VAD, speech recognition, and speech synthesis",
+      "Opt-in device actions: set alarms and timers, open the dialer or calendar, and toggle the flashlight from chat",
+      "Encrypted local database backed by SQLCipher and encrypted portable backups",
     ],
     architectureSummary:
-      "Native C++ llama.cpp/GGML inference core bridged via JNI to a Kotlin Jetpack Compose runtime, scheduling Q4_K_M tensor operations across Android Vulkan compute shaders and ARMv9 dot-product pipelines.",
-    pipelineNodes: [
-      { id: "om-1", label: "Multimodal Input", sublabel: "Text · Vision · Voice VAD", metric: "16kHz / RGB", type: "input" },
-      { id: "om-2", label: "Vision Projector", sublabel: "mmproj F16 Patch Encoder", metric: "256 Tokens", type: "compute" },
-      { id: "om-3", label: "Gemma 4 E4B Q4", sublabel: "GGUF Q4_K_M + Office Memory", metric: "2.6 GB RAM", type: "model" },
-      { id: "om-4", label: "Vulkan / NEON", sublabel: "GPU Shader & CPU Backend", metric: "38.4 tok/s", type: "dsp" },
-      { id: "om-5", label: "Private Response", sublabel: "Zero-Cloud Stream & TTS", metric: "0B Egress", type: "output" },
-    ],
-    bestPractices: [
+      "Native runtime built from vendored llama.cpp sources (Android SDK 36, NDK 29.0.13113456, CMake 3.31.6) with CPU, ARM KleidiAI, OpenMP, and Vulkan support, paired with a SQLCipher-encrypted local database.",
+    details: [
       {
-        title: "Speculative Decoding & Q4_0_4_8 ARM KleidiAI Kernels",
-        category: "AI / ML",
-        impact: "Critical",
-        currentPractice: "Standard Q4 GGUF autoregressive decoding on CPU and Vulkan backends.",
-        proposedUpgrade: "Integrate ARM KleidiAI SME2/i8mm repacked Q4 kernels and a 150M draft head for 1.8x faster prefill and decode on Snapdragon 8 Elite / Tensor G5.",
+        category: "INFERENCE & RUNTIME",
+        title: "Gemma 4 E4B Q4 GGUF + Vulkan / KleidiAI",
+        description:
+          "Runs official Gemma 4 E4B IT Q4 GGUF weights (~4.80 GB) and the optional vision projector (~946 MB) locally via vendored llama.cpp with CPU, KleidiAI, OpenMP, and Vulkan backends. Verifies a conservative context window tailored to device RAM.",
       },
       {
-        title: "On-Device LoRA Adapter Hot-Swapping for Prompt Skills",
-        category: "Architecture",
-        impact: "High",
-        currentPractice: "Prompt skills inject structured system instructions per message without arbitrary code execution.",
-        proposedUpgrade: "Allow attaching lightweight 12MB rank-8 GGUF LoRA adapters (Coding, Medical, Summarization) dynamically per skill in llama_context.",
+        category: "VOICE & MULTIMODAL",
+        title: "Offline Voice Call Mode & Image Understanding",
+        description:
+          "Supports multimodal image + text chats and a dedicated offline voice call mode with on-device voice activity detection (VAD), speech recognition, and speech synthesis.",
       },
       {
-        title: "Signed Release Manifest & Reproducible APK Verification",
-        category: "Security & Supply Chain",
-        impact: "High",
-        currentPractice: "Pinned GGUF artifact revisions with SHA-256 verification during model downloads.",
-        proposedUpgrade: "Adopt LiPlayer/LiEffects style SHA256SUMS.txt + release-manifest.json on GitHub Releases for the APK binary itself.",
+        category: "MEMORY & SKILLS",
+        title: "Office Memory, Prompt Skills & Opt-In Actions",
+        description:
+          "Builds optional Office Memory solely from your local conversations, applies per-message Prompt Skills without executing arbitrary code, and triggers opt-in Android intents (alarms, timers, dialer, calendar, flashlight).",
+      },
+      {
+        category: "PRIVACY & STORAGE",
+        title: "SQLCipher Database & Zero Telemetry Collectors",
+        description:
+          "Stores model weights in app-private storage with Android backup disabled. Requests zero usage-statistics, notification, accessibility, location, contacts, calendar, or Health Connect permissions.",
       },
     ],
-    interactiveDemoType: "offmind-vram",
   },
   {
     id: "LiVoice",
     name: "LiVoice",
     displayName: "LiVoice",
-    tagline: "Privacy-First AI Voice Keyboard & Dictation across Android, macOS & iOS on Cloudflare Workers AI",
+    tagline: "Private voice dictation for your Android phone and your Mac, tuned for English (India).",
     description:
-      "Speak naturally. Get clear, ready-to-use punctuated text where you are typing. Android system IME keyboard + macOS background ⌥ Option listener powered by Cloudflare Workers AI.",
+      "Speak naturally. Get clear, ready-to-use text. LiVoice turns your speech into clean, punctuated text and puts it exactly where you were typing — as a keyboard on Android or a background ⌥ Option listener on Mac.",
     category: "AI & On-Device ML",
-    platforms: ["Android", "macOS Apple Silicon", "iOS", "Cloudflare Edge"],
+    platforms: ["Android", "macOS Apple Silicon"],
     primaryLanguage: "TypeScript",
     languages: {
       "TypeScript": 655182,
@@ -193,7 +193,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
       "Java": 6406,
       "C": 5794,
     },
-    topics: ["ai", "android", "android-app", "keyboard", "speech-recognition", "speech-to-text", "cloudflare-workers-ai", "macos"],
+    topics: ["ai", "android", "android-app", "keyboard", "speech-recognition", "speech-to-text", "macos"],
     license: "GPL-3.0",
     url: "https://github.com/LiLabsAI/LiVoice",
     homepage: "https://wovoice.aliahad.com/",
@@ -202,14 +202,19 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#5cc58a",
+    accentColor: "#ec4899",
     featured: true,
     latestRelease: {
       tag: "v1.9.0",
       name: "LiVoice 1.9.0 & Desktop 1.3.0",
       publishedAt: "2026-11-14T10:11:01Z",
       url: "https://github.com/LiLabsAI/LiVoice/releases/tag/v1.9.0",
-      assets: ["LiVoice-1.9.0.apk", "LiVoice-1.9.0.apk.sha256", "livoice-desktop-1.3.0.dmg", "livoice-desktop-1.3.0.dmg.sha256"],
+      assets: [
+        "LiVoice-1.9.0.apk",
+        "LiVoice-1.9.0.apk.sha256",
+        "livoice-desktop-1.3.0.dmg",
+        "livoice-desktop-1.3.0.dmg.sha256",
+      ],
     },
     releases: [
       {
@@ -227,49 +232,60 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["livoice-desktop-1.3.0.dmg", "livoice-desktop-1.3.0.dmg.sha256"],
       },
     ],
+    requirements: [
+      "Android 7.0 and later (Android keyboard APK)",
+      "macOS (Desktop background ⌥ Option listener DMG)",
+      "Free LiVoice account (passwordless 6-digit email sign-in)",
+      "10 minutes of dictation per day (resets at midnight UTC / 5:30 AM IST)",
+    ],
     highlights: [
-      "Cross-platform dictation: Android InputMethodService keyboard + macOS global ⌥ Option push-to-talk daemon",
-      "Ultra-low-latency transcription & smart punctuation powered by Cloudflare Workers AI at the network edge",
-      "Ephemeral zero-retention audio processing with live service health monitoring at wovoice.aliahad.com/status",
-      "Cryptographically verified releases (.apk.sha256 and .dmg.sha256) for both mobile and desktop targets",
-      "Direct cursor injection into any active text field (Slack, IDE, terminal, browser, mail) without clipboard clobbering",
+      "On Android: system keyboard that dictates into any app (Messages, WhatsApp, Gmail, Notes, Browser)",
+      "On Mac: background listener — hold the ⌥ Option key anywhere, speak, let go, and text is typed at your cursor",
+      "Tuned for English (India) with special care for South Asian pronunciation, names, numbers, and everyday sentences",
+      "Adds punctuation, capital letters, and spacing automatically without speaking 'comma' or 'full stop'",
+      "Lightly cleans up filler words like 'um' and obvious grammar slips without rewriting your meaning",
+      "Formats spoken numbers ('Four eight two nine' → 4829) and understands 'new line' or 'new paragraph'",
+      "Automatic context adapts to the active app and text field, with optional Nearby text snippet guidance",
+      "Shared Dictionary and History synced across your Android phone and Mac, with zero voice recording retention",
     ],
     architectureSummary:
-      "Native Kotlin IME & Swift macOS Accessibility/CGEvent daemon streaming Opus-compressed voice frames to an edge-deployed Cloudflare Worker (`wovoice-transcription`) invoking Workers AI ASR & grammar refinement.",
-    pipelineNodes: [
-      { id: "lv-1", label: "Push-to-Talk Capture", sublabel: "Android IME · macOS ⌥ Key", metric: "PCM 16kHz", type: "input" },
-      { id: "lv-2", label: "Edge Audio Framing", sublabel: "VAD Trim & Opus Stream", metric: "24 kbps", type: "dsp" },
-      { id: "lv-3", label: "Cloudflare Worker", sublabel: "wovoice.aliahad.com Edge", metric: "< 45ms RTT", type: "compute" },
-      { id: "lv-4", label: "Workers AI Whisper", sublabel: "ASR + Punctuation Pass", metric: "WER < 3.8%", type: "model" },
-      { id: "lv-5", label: "Cursor Injection", sublabel: "InputConnection / CGEvent", metric: "Instant", type: "output" },
-    ],
-    bestPractices: [
+      "Native Kotlin Android keyboard and Swift macOS background listener connected to a passwordless account sync service with SHA-256 verified APK and DMG releases.",
+    details: [
       {
-        title: "WebSocket Chunked Streaming + Local Whisper-Tiny Fallback",
-        category: "Performance",
-        impact: "Critical",
-        currentPractice: "Utterance-level edge transcription upon releasing the microphone or ⌥ Option key.",
-        proposedUpgrade: "Stream 600ms Opus frames over a Durable Object WebSocket for real-time partial token display, with automatic offline fallback to Offmind's local ASR engine when disconnected.",
+        category: "ANDROID & MAC WORKFLOW",
+        title: "System Keyboard on Android + ⌥ Option Key on Mac",
+        description:
+          "Tap the microphone on Android or hold ⌥ Option on macOS in any text field. Includes a full offline-capable standard keyboard on Android when not dictating.",
       },
       {
-        title: "Enable Cloudflare Workers Distributed Tracing",
-        category: "Architecture",
-        impact: "High",
-        currentPractice: "wovoice-transcription Worker has observability.logs enabled, but traces.enabled is currently false.",
-        proposedUpgrade: "Set observability.traces.enabled = true in Worker config to measure exact ASR inference vs network cold-start spans.",
+        category: "SPEECH INTELLIGENCE",
+        title: "Tuned for English (India) & Smart Formatting",
+        description:
+          "Built specifically for South Asian pronunciation, names, and numbers. Automatically punctuates, removes filler words, converts spoken digits into numbers, and handles line/paragraph commands.",
+      },
+      {
+        category: "AUTOMATIC CONTEXT",
+        title: "App-Aware Tone & Optional Nearby Text Guidance",
+        description:
+          "Adapts formatting to the writing task of the active app. Separately enabling Nearby text uses a small cursor snippet to guide grammar and tone without saving context to History.",
+      },
+      {
+        category: "SYNC & PRIVACY",
+        title: "Shared Dictionary, History & Zero Voice Retention",
+        description:
+          "Sign in with a 6-digit email code (no password) to sync your custom Dictionary and dictation History across Android and Mac. No ads, no tracking, and your voice is never saved.",
       },
     ],
-    interactiveDemoType: "livoice-asr",
   },
   {
     id: "LiResearch",
     name: "LiResearch",
     displayName: "LiResearch",
-    tagline: "Private, Offline-First Research Workspace for Markdown, DOCX, PDF, XLSX & PPTX on macOS arm64",
+    tagline: "One calm workspace for all your research documents on Mac. Read, edit, and search in place.",
     description:
-      "One calm workspace for all your research documents right on your Mac. Read, edit, organize, and search Markdown, Word, Excel, PowerPoint, PDF, and HTML files in place without moving, converting, or uploading anything.",
+      "Research ends up scattered across notes, reports, spreadsheets, slide decks, and PDFs. LiResearch brings Markdown, HTML, Word (.docx), PDF, Excel (.xlsx), and PowerPoint (.pptx) into one calm macOS window without moving, copying, converting, or uploading anything.",
     category: "Research & Workspace",
-    platforms: ["macOS Apple Silicon", "Cloudflare Edge"],
+    platforms: ["macOS Apple Silicon"],
     primaryLanguage: "TypeScript",
     languages: {
       "TypeScript": 1302951,
@@ -277,7 +293,20 @@ export const LILABS_REPOS: LiLabsRepo[] = [
       "JavaScript": 23625,
       "HTML": 4442,
     },
-    topics: ["apple-silicon", "docx", "electron", "local-first", "macos", "markdown", "offline-first", "pdf", "pptx", "typescript", "workspace", "xlsx"],
+    topics: [
+      "apple-silicon",
+      "docx",
+      "electron",
+      "local-first",
+      "macos",
+      "markdown",
+      "offline-first",
+      "pdf",
+      "pptx",
+      "typescript",
+      "workspace",
+      "xlsx",
+    ],
     license: "GPL-3.0",
     url: "https://github.com/LiLabsAI/LiResearch",
     homepage: "https://liresearch.aliahad.com/",
@@ -286,7 +315,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#8de8a6",
+    accentColor: "#ffffff",
     featured: true,
     latestRelease: {
       tag: "v0.9.12",
@@ -311,46 +340,57 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["Aladdeen-0.9.11-arm64.dmg", "SHA256SUMS"],
       },
     ],
+    requirements: [
+      "Mac with Apple Silicon (M1, M2, M3, M4, or newer)",
+      "macOS 12 Monterey or later",
+      "100% offline — no account, cloud sync, or internet required",
+    ],
     highlights: [
-      "Zero-lock-in local-first architecture: operates directly on existing macOS folders without cloud uploads or proprietary databases",
-      "Unified multi-format engine: native rendering and editing for Markdown (with charts & outlines), DOCX, XLSX, PPTX, PDF, and HTML",
-      "Apple Silicon arm64 native build distributed via Cloudflare Workers + R2 (`liresearch.aliahad.com`) with strict SHA-256 verification",
-      "Instant full-text workspace indexing, heading outline navigation, and distraction-free split-pane reading",
+      "Every format in one place: Markdown, HTML, Word (.docx), PDF, Excel (.xlsx), and PowerPoint (.pptx)",
+      "In-place editing: opens documents where they already live on disk and saves changes back to the same file",
+      "Named Environments ('Personal', 'Thesis', 'Client work') that remember open tabs and folder filters",
+      "Full-text cross-document search that finds the exact passage and jumps straight to the match",
+      "Markdown editor & side-by-side preview with tables, task lists, code blocks, footnotes, math, Mermaid diagrams, and PDF/Word export",
+      "Excel (.xlsx) workbook editor with formulas, multiple sheets, sorting, filters, conditional formatting, and data validation",
+      "PowerPoint (.pptx) editor for slides, text, layouts, speaker notes, and full-screen presentation",
+      "Word (.docx) rich formatting, comments, and tracked changes + PDF search, outlines, form filling, highlights, stamps, and page tools",
     ],
     architectureSummary:
-      "TypeScript local-first document engine on macOS arm64 paired with a Cloudflare Workers + R2 distribution edge (`liresearch-web`) featuring rate-limited verified binary delivery and full observability traces.",
-    pipelineNodes: [
-      { id: "lr-1", label: "Local File System", sublabel: "MD · PDF · DOCX · XLSX · PPTX", metric: "In-Place", type: "input" },
-      { id: "lr-2", label: "Format Parsers", sublabel: "AST & Office XML Decoders", metric: "< 12ms Load", type: "compute" },
-      { id: "lr-3", label: "Local Search Index", sublabel: "Offline Full-Text & Outline", metric: "100% Private", type: "storage" },
-      { id: "lr-4", label: "Chart & Math Engine", sublabel: "Diagrams · Tables · Preview", metric: "60 FPS UI", type: "dsp" },
-      { id: "lr-5", label: "Calm Workspace", sublabel: "macOS arm64 Native Window", metric: "0 Cloud Sync", type: "output" },
-    ],
-    bestPractices: [
+      "Offline-first Apple Silicon macOS workspace operating directly on local Finder folders with dedicated native editors for Markdown/Mermaid, XLSX, PPTX, DOCX, HTML, and PDF.",
+    details: [
       {
-        title: "Local RAG Bridge with Offmind / Apple MLX Embeddings",
-        category: "Ecosystem",
-        impact: "Critical",
-        currentPractice: "Fast keyword and heading outline search across local Markdown, PDF, and Office files.",
-        proposedUpgrade: "Add an optional offline vector index using a 30MB quantized embedding model on Apple Silicon Metal so researchers can semantically query citations across 1,000+ PDFs locally.",
+        category: "LOCAL-FIRST WORKSPACE",
+        title: "Zero File Lock-In & Named Environments",
+        description:
+          "Files stay in your existing macOS folders without copying or converting. Group folders into named Environments ('Thesis', 'Client work'), filter visible document types per folder, and switch workspaces with preserved tab state.",
       },
       {
-        title: "Sparkle EdDSA Delta Auto-Updates via R2",
-        category: "Security & Supply Chain",
-        impact: "Medium",
-        currentPractice: "Full DMG downloads served from Cloudflare R2 with SHA256SUMS verification.",
-        proposedUpgrade: "Publish signed binary delta patches alongside SHA256SUMS on liresearch.aliahad.com so macOS upgrades download < 5MB.",
+        category: "MARKDOWN & DIAGRAMS",
+        title: "Live Mermaid, Math, Wide Tables & PDF/Word Export",
+        description:
+          "Write side-by-side with live rendering for Mermaid diagrams, math equations, footnotes, and code blocks. Click any preview paragraph to jump to that editor line, expand diagrams/mindmaps full-window with pan/zoom, or export to PDF and Word.",
+      },
+      {
+        category: "OFFICE DOCUMENTS",
+        title: "Native Excel (.xlsx), PowerPoint (.pptx) & Word (.docx)",
+        description:
+          "Edit spreadsheets with formulas, conditional formatting, and data validation (with read-only/copy protection for unsupported features); edit and present PowerPoint slides with speaker notes; and edit Word documents with tracked changes.",
+      },
+      {
+        category: "PDF & DEEP SEARCH",
+        title: "PDF Annotation & Cross-Document Passage Search",
+        description:
+          "Read password-protected or standard PDFs, fill forms, highlight, add notes/stamps, and rotate or remove pages. Search inside every document across your workspace at once and jump directly to the matching passage.",
       },
     ],
-    interactiveDemoType: "liresearch-doc",
   },
   {
     id: "LiEffects",
     name: "LiEffects",
     displayName: "LiEffects",
-    tagline: "Android Photo Editor with 40 Film Recipes, Live AGSL Shaders & Deterministic CPU/GPU Export",
+    tagline: "Android photo editor with 40 filter recipes, 59 Adjust controls, 35 Effects & full-res JPEG export.",
     description:
-      "An Android photo editor with live colour grading, film effects, Canvas framing, and full-resolution JPEG export. Built with Kotlin, Jetpack Compose, AGSL runtime shaders, and deterministic CPU renderers.",
+      "An Android photo editor with live colour grading, film effects, nondestructive Canvas framing, and full-resolution JPEG export. Built with Kotlin, Jetpack Compose (minSdk 36 / targetSdk 37), AGSL GPU shaders, and a matching deterministic CPU renderer.",
     category: "Creative & Shaders",
     platforms: ["Android"],
     primaryLanguage: "Kotlin",
@@ -368,7 +408,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#dbad64",
+    accentColor: "#ef4444",
     featured: true,
     latestRelease: {
       tag: "v1.5.0",
@@ -393,46 +433,55 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["PhotoEffects-1.4.apk", "SHA256SUMS.txt"],
       },
     ],
+    requirements: [
+      "Android (minSdk 36 / targetSdk 37)",
+      "Kotlin & Jetpack Compose with AGSL GPU shader support",
+      "Application ID: com.aliahad.photoeffects (supports seamless in-place upgrades)",
+    ],
     highlights: [
-      "40 original analog & cinema filter recipes: Lucent, Nightfall, Marzipan, Lantern, Estuary, Mulberry, Sunstone, Halcyon, Driftglass (6), Graphite (8), Black Tie, and Old Money",
-      "Recipe-specific parametric controls: Filter Strength, Sharpen, Film Grain, Intensity, Tone, and Chromatic Aberration",
-      "Dual-path rendering parity: 120Hz real-time Android Graphics Shading Language (AGSL) viewport + deterministic C++/CPU full-res exporter",
-      "Targeting modern Android SDK 36/37 with Jetpack Compose and SHA256SUMS-verified APK releases",
+      "40 original filter recipes: Lucent, Nightfall, Marzipan, Lantern, Estuary, Mulberry, Sunstone, and Halcyon (3 variants each); Driftglass (6); Graphite (8); Black Tie and Old Money (1 each)",
+      "Recipe-specific parametric controls: Filter/Sharpen, Driftglass Filter/Intensity/Grain, Lantern Filter/Grain, and Graphite Highlights/Shadows/Aberration",
+      "Adjust layer with 8 categories and 59 analytic controls: Light, Color, 6-band HSL, Details, Stylize, vertical tilt-shift Refocus, Optical, and Blur",
+      "35 Effects across 10 families: Motes, Lumen, Daymark, Velour, Paperlight, Prism, Nocturne, Marquee, Solstice (light leaks), and Screenprint (halftone ink looks)",
+      "Nondestructive Canvas geometry pass (1:1, 9:16, 16:9, 4:5, 5:4, 3:4, 4:3, 2:3, 3:2) with pan/pinch zoom, 90° rotation, flip, and −45°…45° straightening",
+      "Progressive 3-stage bottom disclosure panel (Categories → Items → Edit), press-and-hold comparison, Undo history, and full-resolution sRGB JPEG export",
     ],
     architectureSummary:
-      "Jetpack Compose UI driving real-time AGSL fragment shaders on the GPU while maintaining mathematical bit-parity with a deterministic C++/Kotlin tiled CPU renderer for full-resolution 50MP+ JPEG exports.",
-    pipelineNodes: [
-      { id: "le-1", label: "RAW / JPEG Decode", sublabel: "Wide-Gamut Color Space", metric: "Up to 50MP", type: "input" },
-      { id: "le-2", label: "40 Film Recipes", sublabel: "Lucent · Driftglass · Graphite", metric: "Parametric", type: "model" },
-      { id: "le-3", label: "AGSL Live Shader", sublabel: "Tone · Grain · Aberration", metric: "120 FPS GPU", type: "dsp" },
-      { id: "le-4", label: "Deterministic CPU", sublabel: "Tiled C++ Bit-Parity Render", metric: "Zero Artifacts", type: "compute" },
-      { id: "le-5", label: "Framed Export", sublabel: "Canvas Border & EXIF Preserve", metric: "Full-Res JPEG", type: "output" },
-    ],
-    bestPractices: [
+      "Four-stage nondestructive rendering pipeline (Filter → Adjust → Effect → Canvas) driven by AGSL GPU shaders for live preview and an identical deterministic Kotlin CPU renderer for thumbnails and full-resolution JPEG export.",
+    details: [
       {
-        title: "UltraHDR (Gainmap) & 10-Bit Display P3 Export Pipeline",
-        category: "Performance",
-        impact: "High",
-        currentPractice: "Full-resolution sRGB JPEG export with deterministic CPU rendering.",
-        proposedUpgrade: "Preserve Android 14+ UltraHDR gainmaps through the AGSL/CPU grading math so highlights on OLED displays retain 4x headroom.",
+        category: "40 FILTER RECIPES",
+        title: "Parameterized Colour Science & Directional Motion",
+        description:
+          "Recipes live in catalogue.properties and control exposure gain, contrast, saturation, tonal endpoints, shadow/highlight tinting, radial chromatic separation, sharpening, directional motion blur (Driftglass/Halcyon), and bounded procedural grain.",
       },
       {
-        title: "On-Device Neural Subject Masking for Selective Film Recipes",
-        category: "AI / ML",
-        impact: "Medium",
-        currentPractice: "Global parametric recipe application across the image plane.",
-        proposedUpgrade: "Add optional lightweight 4ms NPU depth/subject segmentation to separate foreground skin-tone protection from background Halcyon/Nightfall halation.",
+        category: "59 ADJUST CONTROLS",
+        title: "8 Analytic Adjustment Categories (Zero External LUTs)",
+        description:
+          "Covers Light & Color pointwise curves (including Whites), 6-band HSL hue/saturation/lightness, Details (unsharp, clarity, dehaze, colour denoise), Stylize (grain, dust, vignette, vintage), vertical tilt-shift Refocus, Optical (fisheye, RGB split, aberration), and 7 Blur modes.",
+      },
+      {
+        category: "35 FINISHING EFFECTS",
+        title: "Nocturne, Marquee, Solstice Leaks & Screenprint Halftones",
+        description:
+          "Single-pass asset-free effects including Marquee dark-blue cinema grades, Solstice elliptical light leaks (Ember, Tidal, Rosette), and Screenprint antialiased circular halftone ink screens (Carbon, Duet, Terracotta) within a 16 B/pixel export budget.",
+      },
+      {
+        category: "CANVAS & EXPORT",
+        title: "Affine Geometry Framing & Deterministic CPU Export",
+        description:
+          "Applies nondestructive aspect-ratio framing, rotation, flip, and straightening around the render graph without rebuilding shaders during gestures, exporting source-limited full-resolution sRGB JPEGs with optional metadata preservation.",
       },
     ],
-    interactiveDemoType: "lieffects-shader",
   },
   {
     id: "LiSound",
     name: "LiSound",
     displayName: "LiSound",
-    tagline: "System-Wide macOS Equalizer & Volume Booster with Lock-Free Core Audio Process Taps",
+    tagline: "System-wide macOS audio equalizer and volume booster with real-time DSP and no drivers to install.",
     description:
-      "A system-wide audio equalizer and volume booster for macOS (Apple Silicon). Written from scratch in Swift/SwiftUI with a pure black & golden UI, real-time DSP, and zero kernel drivers or virtual kexts to install.",
+      "A system-wide audio equalizer and volume booster for macOS (Apple Silicon). Written from scratch in Swift/SwiftUI with a pure black & golden UI, Core Audio process taps, lock-free ring buffer DSP, and zero virtual drivers or kexts.",
     category: "Audio & Media DSP",
     platforms: ["macOS Apple Silicon"],
     primaryLanguage: "Swift",
@@ -450,7 +499,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#e5b869",
+    accentColor: "#facc15",
     featured: true,
     latestRelease: {
       tag: "v1.2.0",
@@ -475,46 +524,55 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["Sovate.dmg"],
       },
     ],
+    requirements: [
+      "macOS 15.0 or later",
+      "Apple Silicon Mac",
+      "macOS Audio Recording permission (one-click self-test in Settings → Permissions)",
+    ],
     highlights: [
-      "Zero virtual drivers or kexts: uses modern macOS Core Audio process taps (`CATapDescription`) to capture system output cleanly",
-      "Lock-free SPSC ring buffer bridging the real-time Core Audio `IOProc` thread into an `AVAudioEngine` DSP chain without allocations",
-      "Real-time stereo balance, stereo width expansion, loudness leveling, parametric EQ, and safe volume boost",
-      "Pure Black & Golden SwiftUI menu-bar interface with live beat visualizer and custom preset management",
+      "Driverless capture: macOS Core Audio process taps capture system output with mute-safe instant teardown on power off",
+      "13 built-in presets (Default, Music, Voice, Volume Boost, Bass Boost, Gaming, Movies, TV, Transcription, and more)",
+      "Custom presets with rolling 'Custom' scratch state, Save As New / Overwrite / Undo / Delete, and shareable JSON export/import",
+      "Graphic EQ with 5, 10, 15, 20, or 31 bands (±12 dB, movable centers, Q 1–3) that interpolates your curve when switching band counts",
+      "5 real-time effects (Bass, Fidelity, Ambience, Surround, Dynamic Boost 0–10) + Master gain (−20…+20 dB with peak limiter), balance (±20 dB), and volume leveling (0–4 dB)",
+      "Beat-sensitive waveform visualizer with 128 FFT sticks, Lite/Pro pure black & golden views, 5 global hotkeys, and CLI control",
     ],
     architectureSummary:
-      "Core Audio Process Tap mutes original output and routes PCM samples via a Private Aggregate Device IOProc into a lock-free ring buffer, feeding an AVAudioSourceNode -> Multi-Band Biquad EQ -> Limiter chain.",
-    pipelineNodes: [
-      { id: "ls-1", label: "macOS System Audio", sublabel: "All Apps (Self-Excluded)", metric: "48kHz Float32", type: "input" },
-      { id: "ls-2", label: "Core Audio Tap", sublabel: "Private Aggregate IOProc", metric: "< 2.6ms Buf", type: "compute" },
-      { id: "ls-3", label: "Lock-Free RingBuf", sublabel: "Zero-Alloc Atomic SPSC", metric: "0 Dropouts", type: "storage" },
-      { id: "ls-4", label: "AVAudioEngine DSP", sublabel: "Width · Leveling · 10-Band EQ", metric: "+12dB Boost", type: "dsp" },
-      { id: "ls-5", label: "Hardware Output", sublabel: "Speakers · AirPods · DAC", metric: "Bit-Clean", type: "output" },
-    ],
-    bestPractices: [
+      "Core Audio process tap (mutes original, excludes self) bound to a private aggregate device IOProc → lock-free ring buffer → AVAudioEngine (AVAudioSourceNode → AVAudioUnitEQ → PeakLimiter → output device).",
+    details: [
       {
-        title: "AutoEQ Headphone Convolution & Per-Device Profile Switching",
-        category: "Audio & Media DSP" as unknown as "Performance",
-        impact: "High",
-        currentPractice: "Manual and preset multi-band EQ with stereo width and leveling across the selected output device.",
-        proposedUpgrade: "Automatically bind EQ presets to CoreAudio device UIDs (e.g., MacBook Speakers vs AirPods Pro vs Studio DAC) and support 512-tap minimum-phase FIR AutoEQ impulse responses.",
+        category: "CORE AUDIO TAP ENGINE",
+        title: "Zero Virtual Drivers or Kernel Extensions",
+        description:
+          "Binds a macOS Core Audio process tap to your real output device via a private aggregate device and lock-free ring buffer. Powering off destroys the tap and restores normal system audio instantaneously.",
       },
       {
-        title: "Add SHA256SUMS & Notarization Stapling Manifest to Releases",
-        category: "Security & Supply Chain",
-        impact: "High",
-        currentPractice: "Direct LiSound.dmg binary uploaded to GitHub Releases.",
-        proposedUpgrade: "Generate SHA256SUMS.txt and a release-manifest.json matching LiPlayer and LiResearch release pipelines.",
+        category: "GRAPHIC EQ & EFFECTS",
+        title: "5/10/15/20/31-Band Parametric EQ & Peak Limiter",
+        description:
+          "Supports ±12 dB per band with movable center frequencies and Q (1–3), interpolating curves across band counts. Pairs with Bass, Fidelity, Ambience, Surround, Dynamic Boost (0–10), and a +20 dB master gain peak limiter.",
+      },
+      {
+        category: "VISUALIZER & OUTPUTS",
+        title: "128-Stick FFT Beat Visualizer & Smart Device Routing",
+        description:
+          "Renders a 128-bar per-band FFT spectrum with fast attack and smooth release. Automatically follows the system default output, prioritizes newly connected headphones/DACs, and cycles outputs via hotkey.",
+      },
+      {
+        category: "CONTROLS & CLI",
+        title: "Lite/Pro Menu Bar UI, 5 Global Hotkeys & CLI Flags",
+        description:
+          "Switch between Lite and Pro views in the menu bar, bind 5 global shortcuts (⌃/⌥ + key), or automate from Terminal with --power=1, --preset=<name>, --set-band-gain=<index>:<dB>, and --view=2.",
       },
     ],
-    interactiveDemoType: "lisound-eq",
   },
   {
     id: "LiPlayer",
     name: "LiPlayer",
     displayName: "LiPlayer",
-    tagline: "Native macOS Apple Silicon Video Player built with Swift, AppKit, SwiftUI & libmpv",
+    tagline: "Native Apple Silicon Mac media player built with Swift, AppKit, SwiftUI, and libmpv.",
     description:
-      "A native Mac media player inspired by PotPlayer's precise playback controls. Built with Swift, AppKit, SwiftUI, and libmpv for Apple Silicon with frame-accurate seeking, subtitle styling, persistent folder queues, and keyboard-first ergonomics.",
+      "A native Mac media player inspired by PotPlayer's precise playback controls (formerly Video Player). Built with Swift 6.2, AppKit, SwiftUI, and libmpv for Apple Silicon with persistent folder libraries, dual subtitles, frame stepping, and A–B repeat.",
     category: "Audio & Media DSP",
     platforms: ["macOS Apple Silicon"],
     primaryLanguage: "Swift",
@@ -532,7 +590,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#36c3b0",
+    accentColor: "#ffffff",
     featured: true,
     latestRelease: {
       tag: "v0.2.1",
@@ -562,48 +620,58 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["VideoPlayer-0.2.0-macOS-arm64.zip", "SHA256SUMS.txt", "release-manifest.json"],
       },
     ],
+    requirements: [
+      "Apple Silicon Mac (macOS 27.2 or later)",
+      "Self-contained app bundle — no Homebrew or external mpv required at runtime",
+      "Build from source: Xcode 27.2 toolchain (Swift 6.2+) & Python 3",
+    ],
     highlights: [
-      "Hardware-accelerated Apple Silicon decoding via libmpv + VideoToolbox with AppKit/Metal layer hosting",
-      "PotPlayer-inspired precision keyboard shortcuts: frame step, A-B loop, playback speed, audio/subtitle delay, and persistent folder libraries (⌘⇧O)",
-      "Gold-standard GPLv3 compliance: ships `release-manifest.json`, `SHA256SUMS.txt`, and `dependency-sources.json` in every release",
-      "Clean native SwiftUI HUD overlays that auto-hide with zero frame drops during 4K/8K HDR playback",
+      "Plays local video/audio files and direct HTTP, HTTPS, RTSP, RTMP, and HLS media addresses",
+      "Persistent folder Library (⌘⇧O / ⌘⇧L) with expandable subfolders, background browsing, natural ordering, and missing-drive recovery",
+      "Queue with natural folder ordering, reorder/remove, repeat, saved .lpqueue (and legacy .vpqueue) files, and local M3U import",
+      "Frame stepping, playback speed with pitch correction, A–B repeat, chapters, and screenshots",
+      "Embedded and external subtitles with primary/secondary tracks, timing, scale, position, ASS styling, and multilingual rendering",
+      "Image adjustments, aspect ratio, rotation, zoom/pan, deinterlacing, audio device selection, and A/V delay",
+      "Auto-hiding full-screen controls, compact floating mode, searchable command list, customizable shortcuts, and live codec/dropped-frame inspector",
     ],
     architectureSummary:
-      "Hybrid AppKit window management & Metal/OpenGL video surface coupled to `libmpv` C APIs, overlaid with reactive SwiftUI HUD controls and an automated Python dependency/manifest verification pipeline.",
-    pipelineNodes: [
-      { id: "lp-1", label: "Media Container", sublabel: "MKV · MP4 · AV1 · HEVC", metric: "4K / 8K HDR", type: "input" },
-      { id: "lp-2", label: "libmpv + FFmpeg", sublabel: "Demux & Subtitle ASS Engine", metric: "Native arm64", type: "compute" },
-      { id: "lp-3", label: "VideoToolbox GPU", sublabel: "Apple Silicon Media Engine", metric: "< 4% CPU", type: "dsp" },
-      { id: "lp-4", label: "SwiftUI + AppKit", sublabel: "HUD · Queue · Keybindings", metric: "120Hz ProMotion", type: "storage" },
-      { id: "lp-5", label: "Display Surface", sublabel: "EDR Extended Dynamic Range", metric: "Frame-Exact", type: "output" },
-    ],
-    bestPractices: [
+      "Native Swift 6.2 + AppKit + SwiftUI interface backed by locked libmpv C libraries and OpenGL video rendering (with HDR-to-SDR tone mapping) and automated Python playback verification.",
+    details: [
       {
-        title: "On-Device Whisper Live Subtitle Generation via LiVoice / Offmind Core",
-        category: "Ecosystem",
-        impact: "Critical",
-        currentPractice: "Loads external SRT/ASS/VTT subtitle files and embedded matroska tracks via libmpv.",
-        proposedUpgrade: "Add one-click 'Generate Subtitles Locally' using a shared Whisper-Turbo CoreML/Metal runner to transcribe unsubtitled lectures or foreign media in real time.",
+        category: "PLAYBACK & STREAMS",
+        title: "libmpv Engine + Precision PotPlayer-Style Controls",
+        description:
+          "Bundled with locked native libmpv dependencies so it runs standalone without Homebrew. Supports local media and HTTP/HTTPS/RTSP/RTMP/HLS streams with frame stepping, pitch-corrected speed, A–B loops, and chapters.",
       },
       {
-        title: "Use LiPlayer's Release Manifest Pattern as the Org-Wide Template",
-        category: "Security & Supply Chain",
-        impact: "High",
-        currentPractice: "LiPlayer includes release-manifest.json, dependency-sources.json, and SHA256SUMS.txt.",
-        proposedUpgrade: "Standardize LiPlayer's Python release-manifest generator as a shared GitHub Action in `LiLabsAI/.github` for all 8 product repos.",
+        category: "LIBRARY & QUEUES",
+        title: "Persistent Folder Library & .lpqueue Session Files",
+        description:
+          "Open persistent folder libraries (⌘⇧O) with background directory scanning, natural human file sorting, missing-drive recovery, M3U import, and saved .lpqueue queue files.",
+      },
+      {
+        category: "SUBTITLES & VIDEO",
+        title: "Dual Subtitles, ASS Styling & Video Geometry",
+        description:
+          "Simultaneous primary and secondary subtitle tracks with timing/scale/position controls and ASS rendering. Adjust image brightness/contrast, aspect ratio, rotation, zoom/pan, deinterlacing, and A/V sync offset.",
+      },
+      {
+        category: "INSPECTOR & VERIFICATION",
+        title: "Codec Telemetry & Automated Fixture QA Suite",
+        description:
+          "Real-time inspector reports codec, decoder, resolution, frame rate, and dropped frames. Ships with SHA256SUMS.txt, release-manifest.json, dependency-sources.json, and automated x264/x265/VP9/AV1 playback verification scripts.",
       },
     ],
-    interactiveDemoType: "architecture",
   },
   {
     id: "ainewshot",
     name: "ainewshot",
     displayName: "AI News Hot",
-    tagline: "Live AI News Watcher, Real-Time English Translator, Voice Alerts & Daily AI Podcast Generator",
+    tagline: "Watches aihot.news live, translates to English, reads alerts aloud, and produces AI podcasts.",
     description:
-      "Watches aihot.news live, translates breaking global AI research and releases into English, pops up high-priority alerts with natural TTS voice reading, and synthesizes multi-day AI news podcasts on Android.",
+      "An Android app that watches aihot.news live, translates everything to English with DeepSeek, pops important news up in front of whatever you're doing with natural Xiaomi MiMo voice reading, and produces 1-, 3-, or 7-day AI podcasts.",
     category: "AI & On-Device ML",
-    platforms: ["Android", "macOS Apple Silicon", "Cloudflare Edge"],
+    platforms: ["Android"],
     primaryLanguage: "Kotlin",
     languages: {
       "Kotlin": 455410,
@@ -619,7 +687,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#5cc58a",
+    accentColor: "#ec4899",
     featured: true,
     latestRelease: {
       tag: "v2.5.0",
@@ -644,46 +712,56 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["AINewsHot-2.4.0.apk"],
       },
     ],
+    requirements: [
+      "Android 10 or later (tested on Redmi K80 Pro running HyperOS 4 / Android 17)",
+      "Direct DeepSeek & Xiaomi MiMo API keys (encrypted on-device with Android Keystore AES-GCM)",
+      "No Cloudflare account or sign-in required (legacy macOS 1.0.0 app in macos/ is deprecated)",
+    ],
     highlights: [
-      "Real-time monitoring of `aihot.news` with automatic translation into natural English",
-      "Priority overlay popups with instant natural-voice TTS narration so you never miss a frontier model drop",
-      "On-demand AI Podcast generator covering the last 24 hours, 3 days, or 7 days of AI developments",
-      "Backed by Cloudflare Worker `ainewshot-ai` with full Workers Logs and Traces observability enabled",
+      "Mirrors aihot.news across 5 tabs (Selected · Hot · Daily · Podcast · Me) with Warm Light, Dark, Auto, and Material You themes",
+      "Direct DeepSeek integration: DeepSeek Flash translates and summarizes articles in parallel chunks; V4 Pro writes podcast scripts",
+      "Direct Xiaomi MiMo TTS integration: pre-generates natural voice clips before popup alerts appear and streams article narration in ~3s",
+      "Live deduplicated alerts (90s foreground check + ~4m allow-while-idle alarm + 15m WorkManager backup) with one alert per event (factId)",
+      "Official selected/snapshot + selected/changes sync that updates corrected stories and removes retracted items automatically",
+      "AI Podcast studio covering 1, 3, or 7 days (~450 items/day) with 1 or 2 hosts, MiMo Director mode emotion/audio tags, sung intro jingle, and Media3 playback",
+      "Built-in HyperOS 4 / Android 17 Reliability Setup that inspects Xiaomi AppOpsManager switches and deep-links to exact system settings",
     ],
     architectureSummary:
-      "Kotlin Jetpack Compose Android client + Cloudflare Worker (`ainewshot-ai`) aggregating live feeds, executing LLM translation & podcast script synthesis, and streaming neural TTS audio.",
-    pipelineNodes: [
-      { id: "an-1", label: "aihot.news Stream", sublabel: "Global AI Signals & ArXiv", metric: "Live Poll", type: "input" },
-      { id: "an-2", label: "ainewshot-ai Worker", sublabel: "Deduplication & Ranking", metric: "Edge Worker", type: "compute" },
-      { id: "an-3", label: "LLM Translator", sublabel: "English Brief & Podcast Script", metric: "1d / 3d / 7d", type: "model" },
-      { id: "an-4", label: "Neural Voice TTS", sublabel: "Spoken Alert & Episode Audio", metric: "24kHz Stream", type: "dsp" },
-      { id: "an-5", label: "Android Popup & Cast", sublabel: "Overlay Alert + Podcast Player", metric: "v2.5.0 APK", type: "output" },
-    ],
-    bestPractices: [
+      "Native Kotlin Android app calling DeepSeek (Flash / V4 Pro) and Xiaomi MiMo TTS endpoints directly with Android Keystore AES-GCM credential encryption, Media3 audio playback, and Xiaomi HyperOS AppOps reliability diagnostics.",
+    details: [
       {
-        title: "Edge-Cached Daily Podcast Episodes in Cloudflare R2 + RSS Feed",
-        category: "Architecture",
-        impact: "High",
-        currentPractice: "Generates podcasts on demand via `ainewshot-ai` for the Android app.",
-        proposedUpgrade: "Pre-generate daily 24h and weekly 7d briefings via a Cloudflare Cron Trigger in `ainewshot-ai`, store the MP3 in R2, and expose a standard Podcast RSS feed playable in SoundVault.",
+        category: "LIVE FEEDS & TRANSLATION",
+        title: "5-Tab aihot.news Mirror & Parallel English Streaming",
+        description:
+          "Includes Selected (~10–25/day) and All (~360/day) feeds, 48-hour Hot Top 10 with heat sparklines, Newspaper-style Daily/Weekly/Monthly reports, and developer-focused Explain briefs. Full articles translate into English in parallel chunks with an English/中文 toggle.",
       },
       {
-        title: "Topic-Based Semantic Filtering (LLMs, Vision, Audio, Systems)",
-        category: "AI / ML",
-        impact: "Medium",
-        currentPractice: "Streams and translates top items from aihot.news with popup alerts.",
-        proposedUpgrade: "Use Workers AI `@cf/baai/bge-small-en-v1.5` embeddings to let users mute hype news and only trigger voice popups for open-weight releases or systems papers.",
+        category: "POPUP ALERTS & VOICE",
+        title: "Pre-Recorded Xiaomi MiMo Voice Popups",
+        description:
+          "Wakes the screen and opens a full-screen card over any app with instant pre-generated MiMo speech, a 0.8s accidental-tap guard, 3+ story digest grouping, quiet hours, snooze, and keyword filters.",
+      },
+      {
+        category: "AI PODCAST GENERATOR",
+        title: "1 / 3 / 7-Day Multi-Host Episodes with Director Mode",
+        description:
+          "Merges and ranks ~450 daily stories, writes deep dives and quick hits via DeepSeek V4 Pro, and synthesizes 1- or 2-host audio via Xiaomi MiMo Director mode ([Character], [Scene], [Guidance], inline [laughs]/[pause] tags, and Singing mode intro jingles) saved as AAC in Music/AI News Hot.",
+      },
+      {
+        category: "HYPEROS RELIABILITY",
+        title: "Hardware-Verified Wakeups & Xiaomi AppOps Inspector",
+        description:
+          "Reads Xiaomi miui-framework.jar AppOps (10021 background pop-ups, 10020 lock-screen show, 10008 autostart, Super Island focus notifications) and pairs a 90s foreground service with allow-while-idle alarms and a 30-min watchdog.",
       },
     ],
-    interactiveDemoType: "architecture",
   },
   {
     id: "SoundVault",
     name: "SoundVault",
     displayName: "SoundVault",
-    tagline: "Polished, Offline-First Personal Audio Player for Android with Media3 & Natural Folder Playlists",
+    tagline: "Polished Android audio player with natural folder playlists, timestamp bookmarks, and 10-band EQ.",
     description:
-      "A polished, personal audio player for Android — lightweight, beautiful, and built to make everyday listening seamless. Folder-based natural order playlists, persistent playback state, bass boost, and equalizer.",
+      "A polished audio playback app for Android tailored for personal libraries. Built with Kotlin, Jetpack Compose (Material 3), and Media3 ExoPlayer with recursive natural-order folder playlists, persistent state, timestamp bookmarks, and an in-player 10-band equalizer and bass booster.",
     category: "Audio & Media DSP",
     platforms: ["Android"],
     primaryLanguage: "Kotlin",
@@ -713,7 +791,7 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#c9f3d6",
+    accentColor: "#facc15",
     featured: true,
     latestRelease: {
       tag: "v0.1.0",
@@ -738,48 +816,114 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         assets: ["app-release.apk"],
       },
     ],
+    requirements: [
+      "Android 12 or later (minSdk 31, targetSdk 36)",
+      "Supported formats: mp3, wav, m4a, aac, ogg/oga, opus, flac",
+      "Kotlin + Jetpack Compose (Material 3) + Media3 ExoPlayer + Room + DataStore",
+    ],
     highlights: [
-      "Recursive folder-based playlists in natural human sort order ('Track 2' before 'Track 10'), ignoring `.m3u` and hidden trash files",
-      "Rock-solid persistent playback: folder, track, millisecond timestamp, shuffle/repeat modes, and playback speed saved every few seconds",
-      "Full Android Media3 `MediaSessionService` background architecture with lock-screen controls, audio-focus ducking, and headset unplug pause",
-      "Built-in hardware Equalizer and Bass Boost DSP effects with Material 3 Jetpack Compose UI",
+      "Folder-based playlists (including subfolders) sorted in natural file order ('Track 2' before 'Track 10'), ignoring .m3u and hidden/trashed files",
+      "Persistent playback: chosen folder, current track, playback position (saved every few seconds), shuffle/repeat modes, and 0.75×–2.0× speed",
+      "Background Media3 MediaSessionService with persistent notification, lock-screen controls, audio-focus pause, and headphone-unplug pause",
+      "Timestamp bookmarks stored in Room — save the current position of any track with an optional note and jump back later",
+      "Configurable skip-back and skip-forward steps (5 s, 10 s, 20 s, or 1 min) synced with lock-screen and headset buttons",
+      "In-player Equalizer & Bass Booster: 0–100% bass boost (Off/Low/Mid/High/Max shortcuts), loudness boost, 16 presets, and 10-band EQ (31 Hz – 16 kHz, ±12 dB) with automatic pre-gain and limiter",
     ],
     architectureSummary:
-      "Android Jetpack Compose + Media3 ExoPlayer service with natural-collation DocumentFile recursive scanner, DataStore state persistence, and Android AudioEffect DSP session binding.",
-    pipelineNodes: [
-      { id: "sv-1", label: "Storage Folder Tree", sublabel: "Recursive SAF Scanner", metric: "Natural Sort", type: "input" },
-      { id: "sv-2", label: "State Persistence", sublabel: "Track · Pos · Speed · Mode", metric: "Auto-Save 3s", type: "storage" },
-      { id: "sv-3", label: "Media3 ExoPlayer", sublabel: "MediaSessionService Core", metric: "Gapless", type: "compute" },
-      { id: "sv-4", label: "AudioEffect DSP", sublabel: "Equalizer & Bass Boost", metric: "Hardware DSP", type: "dsp" },
-      { id: "sv-5", label: "Lockscreen & Audio", sublabel: "AudioFocus & Notification", metric: "Zero Drain", type: "output" },
-    ],
-    bestPractices: [
+      "Kotlin + Jetpack Compose (Material 3) audio player powered by Media3 ExoPlayer and MediaSessionService, using DataStore for playback state persistence, Room for timestamp bookmarks, and Kotest for property testing.",
+    details: [
       {
-        title: "EBU R128 ReplayGain Scanner & Gapless FLAC/Opus Cue Sheet Support",
-        category: "Performance",
-        impact: "High",
-        currentPractice: "Folder-based playback with hardware Equalizer and Bass Boost.",
-        proposedUpgrade: "Add background EBU R128 loudness normalization tags and `.cue` sheet chapter splitting for single-file lossless album rips.",
+        category: "EQUALIZER & BASS BOOSTER",
+        title: "In-Player 10-Band EQ, 16 Presets & Auto Limiter",
+        description:
+          "Processed directly inside SoundVault's player pipeline so it works identically on every phone. Includes a 0–100% bass boost, loudness boost, 16 presets (Subwoofer, Deep Bass, Hip-Hop, Vocal, Phone Speaker, etc.), and a 10-band 31 Hz–16 kHz (±12 dB) EQ with automatic pre-gain and distortion limiter.",
       },
       {
-        title: "Versioned APK Naming & SHA-256 Checksum Artifacts",
-        category: "Security & Supply Chain",
-        impact: "Medium",
-        currentPractice: "Releases publish `app-release.apk` without versioned filename or SHA-256 companion file.",
-        proposedUpgrade: "Name release artifacts `SoundVault-0.1.0.apk` + `SoundVault-0.1.0.apk.sha256` to match LiVoice and AI News Hot conventions.",
+        category: "FOLDER PLAYLISTS",
+        title: "Recursive Natural Sorting & Dynamic Auto-Scroll",
+        description:
+          "Select any device storage folder to build a playlist across all subfolders in natural human order ('Track 2' before 'Track 10'). Automatically keeps the active song scrolled into view and skips unplayable files cleanly.",
+      },
+      {
+        category: "BOOKMARKS & PERSISTENCE",
+        title: "Room Timestamp Notes & 3-Second Position Checkpoints",
+        description:
+          "Save timestamp bookmarks with custom notes on long mixes, audiobooks, or lectures. Folder, track, position, shuffle/repeat, and 0.75×–2.0× speed are restored automatically across app restarts.",
+      },
+      {
+        category: "MEDIA3 & MATERIAL 3",
+        title: "Lock-Screen Controls, Custom Skip Steps & Night/Light UI",
+        description:
+          "Full MediaSessionService integration with independent skip-back/skip-forward intervals (5s, 10s, 20s, 1m), audio focus handling, haptic feedback, track detail sheet, and Night/Light themes.",
       },
     ],
-    interactiveDemoType: "architecture",
+  },
+  {
+    id: "LiLabs",
+    name: "LiLabs",
+    displayName: "LiLabs Website",
+    tagline: "Official website and interactive 3D & 3D SVG neural network showcase for LI Labs.",
+    description:
+      "The official website for LI Labs (lilabs.aliahad.com), featuring a full-viewport interactive 3D & 3D SVG neural network and model fine-tuning showcase on the home page and an open-source repository catalog on /product.",
+    category: "Org & Infrastructure",
+    platforms: ["Web", "Cloudflare Edge"],
+    primaryLanguage: "TypeScript",
+    languages: {
+      "TypeScript": 58420,
+      "Vue": 22027,
+      "CSS": 4200,
+      "HTML": 1950,
+    },
+    topics: ["ai", "neural-network", "threejs", "webgl", "react", "vue", "typescript", "cloudflare-workers", "gplv3"],
+    license: "GPL-3.0",
+    url: "https://github.com/LiLabsAI/LiLabs",
+    homepage: "https://lilabs.aliahad.com",
+    createdAt: "2026-11-14T15:14:00Z",
+    updatedAt: "2026-11-14T15:14:30Z",
+    stars: 0,
+    forks: 0,
+    openIssues: 0,
+    accentColor: "#ef4444",
+    featured: false,
+    latestRelease: null,
+    releases: [],
+    requirements: [
+      "Node.js 22+ and pnpm 10+",
+      "Cloudflare Workers runtime (lilabs-web)",
+      "WebGL2-capable browser for 3D neural showcase",
+    ],
+    highlights: [
+      "Full-viewport (100vw × 100dvh), zero-scroll interactive 3D + 3D SVG neural network and model fine-tuning showcase on /",
+      "Hybrid TypeScript runtime combining React 19, Vue.js 3.5, and Three.js WebGL synchronized at 60fps",
+      "Minimalist monochrome (#040404 / #FFFFFF) palette with Yellow (#FACC15), Red (#EF4444), and Pink (#EC4899) neural signal pulses",
+      "Deployed on Cloudflare Workers at lilabs.aliahad.com with live GitHub API enrichment and full observability traces",
+    ],
+    architectureSummary:
+      "Multi-page Vite 7 + TypeScript application mounting React 19 and Three.js WebGL alongside Vue.js 3.5 components via a shared reactive store, served from Cloudflare Workers.",
+    details: [
+      {
+        category: "3D NEURAL SHOWCASE",
+        title: "7-Layer 3D Transformer & Synchronized 3D SVG Filaments",
+        description:
+          "Renders 206 interactive 3D neurons, 680+ vertex-colored synaptic links, 140 traveling signal pulses, and a central 3D Li monolith with frame-rate-independent pointer orbit and magnetic cursor attraction.",
+      },
+      {
+        category: "HYBRID RUNTIME",
+        title: "React 19 + Vue.js 3.5 + Three.js on Cloudflare Workers",
+        description:
+          "Synchronizes 3D WebGL camera projections with a reactive Vue 3.5 SVG overlay and serves live repository metadata from the Cloudflare Edge at lilabs.aliahad.com.",
+      },
+    ],
   },
   {
     id: "dot-github",
     name: ".github",
     displayName: "LiLabsAI/.github",
-    tagline: "Organization Profile, Brand Identity Assets & Community Health Governance",
+    tagline: "Organization profile, banner graphics, and open-source governance for LI Labs.",
     description:
-      "LI Labs organization profile, banner assets, community health files, and cross-repository governance standards for https://github.com/LiLabsAI.",
+      "Organization profile repository for https://github.com/LiLabsAI containing the public organization README, brand banner assets, and links to flagship LI Labs projects.",
     category: "Org & Infrastructure",
-    platforms: ["Web", "Cloudflare Edge"],
+    platforms: ["Web"],
     primaryLanguage: "Markdown",
     languages: {
       "Markdown": 4096,
@@ -793,33 +937,32 @@ export const LILABS_REPOS: LiLabsRepo[] = [
     stars: 0,
     forks: 0,
     openIssues: 0,
-    accentColor: "#fbf8f1",
+    accentColor: "#ffffff",
     featured: false,
     latestRelease: null,
     releases: [],
+    requirements: ["GitHub Organization Profile (profile/README.md)"],
     highlights: [
-      "Centralized organization profile README (`profile/README.md`) and official banner graphics",
-      "Unified GPL-3.0 open-source licensing and contribution standards across all LI Labs repositories",
-      "Links official product domains (`lilabs.aliahad.com`, `liresearch.aliahad.com`, `wovoice.aliahad.com`)",
+      "Official GitHub organization profile README (profile/README.md) and banner graphics (profile/assets/banner.png)",
+      "Presents LI Labs' core focus areas: Artificial Intelligence & Machine Learning, Software Engineering, Mobile & Desktop Applications, and R&D",
+      "Links flagship open-source projects (LiEffects, LiResearch, Offmind, AI News Hot) and official domains (lilabs.aliahad.com, aliahad.com)",
     ],
     architectureSummary:
-      "GitHub organization metadata repository supplying community health defaults (`SECURITY.md`, `CONTRIBUTING.md`, issue templates) and reusable CI/CD workflows across all LI Labs projects.",
-    pipelineNodes: [
-      { id: "gh-1", label: "Brand & Identity", sublabel: "45° Chamfer Logo & Banner", metric: "SVG / PNG", type: "input" },
-      { id: "gh-2", label: "Org Profile README", sublabel: "Project Matrix & Mission", metric: "GitHub Org", type: "storage" },
-      { id: "gh-3", label: "Reusable Workflows", sublabel: "SHA256 & Release Manifests", metric: "CI / CD", type: "compute" },
-      { id: "gh-4", label: "Security Policy", sublabel: "GPLv3 & Vulnerability Disclosure", metric: "Org-Wide", type: "output" },
-    ],
-    bestPractices: [
+      "GitHub organization metadata repository rendering the public profile header, mission overview, and project directory on github.com/LiLabsAI.",
+    details: [
       {
-        title: "Shared GitHub Actions for Deterministic Builds & SHA256SUMS",
-        category: "Security & Supply Chain",
-        impact: "Critical",
-        currentPractice: "Each repository manages its own release scripts and checksum generation independently.",
-        proposedUpgrade: "Host a reusable `.github/workflows/release-verified.yml` workflow in `LiLabsAI/.github` that automatically signs APKs/DMGs, generates `SHA256SUMS.txt` + `release-manifest.json`, and updates `lilabs.aliahad.com`.",
+        category: "ORGANIZATION PROFILE",
+        title: "Public Landing Profile on github.com/LiLabsAI",
+        description:
+          "Houses profile/README.md and profile/assets/banner.png displayed at the top of the LiLabsAI GitHub organization page.",
+      },
+      {
+        category: "OPEN-SOURCE IDENTITY",
+        title: "Unified GPLv3 Licensing & Project Directory",
+        description:
+          "Connects developers to LI Labs' flagship Android, macOS Apple Silicon, and AI research repositories founded by Ali Ahad.",
       },
     ],
-    interactiveDemoType: "architecture",
   },
 ];
 
@@ -852,100 +995,13 @@ export const ML_MODEL_PRESETS: ModelPreset[] = [
     defaultQuant: "Q4_K_M",
     defaultTarget: "Android Vulkan GPU",
     description:
-      "Offmind's flagship on-device reasoning and vision backbone. Combines a 4B-class transformer with a dedicated vision patch projector and local Office Memory retrieval.",
+      "Offmind's on-device reasoning and vision backbone running official Q4 GGUF weights with CPU, KleidiAI, OpenMP, and Vulkan acceleration.",
     layers: [
-      { name: "Input & Vision Patch Embed", type: "Tokenizer + mmproj F16", dim: "[B, 4096, 2560]", flopsG: 1.8 },
-      { name: "Grouped-Query Attention", type: "RoPE + KV-Cache GQA", dim: "[32 Layers, 16H/4KV]", flopsG: 4.6 },
+      { name: "Input & Vision Patch Embed", type: "Tokenizer + Vision Projector", dim: "[B, 4096, 2560]", flopsG: 1.8 },
+      { name: "Grouped-Query Attention", type: "RoPE + Verified Context", dim: "[32 Layers, 16H/4KV]", flopsG: 4.6 },
       { name: "LoRA Adapter ΔW = B × A", type: "Low-Rank Fine-Tune Matrix", dim: "[2560 → r → 2560]", flopsG: 0.4 },
-      { name: "GeGLU Feed-Forward Block", type: "Fused Q4_K_M Dequant + GEMV", dim: "[2560 → 10240]", flopsG: 6.2 },
-      { name: "On-Device Output & VAD TTS", type: "Zero-Telemetry Stream", dim: "[Vocab 256K]", flopsG: 0.9 },
+      { name: "GeGLU Feed-Forward Block", type: "Q4 GGUF + KleidiAI / Vulkan", dim: "[2560 → 10240]", flopsG: 6.2 },
+      { name: "On-Device Output & VAD TTS", type: "SQLCipher + Local Voice", dim: "[Vocab 256K]", flopsG: 0.9 },
     ],
-  },
-  {
-    id: "whisper-v3-edge",
-    name: "Whisper-Large-v3-Turbo + Punctuator",
-    repo: "LiLabsAI/LiVoice",
-    domain: "Edge Speech-to-Text & Punctuation Pipeline",
-    baseParamsB: 1.55,
-    defaultRank: 8,
-    defaultQuant: "FP16",
-    defaultTarget: "Cloudflare Workers AI Edge",
-    description:
-      "LiVoice's ultra-low-latency dictation model running on Cloudflare Workers AI, transforming 16kHz Opus voice streams into punctuated text across Android and macOS.",
-    layers: [
-      { name: "Log-Mel Spectrogram + VAD", type: "128-Ch Acoustic Frontend", dim: "[1, 128, 3000]", flopsG: 0.6 },
-      { name: "Audio Encoder Transformer", type: "32-Layer Self-Attention", dim: "[1500, 1280]", flopsG: 3.1 },
-      { name: "Domain Vocabulary LoRA", type: "Code & Tech Jargon Adapter", dim: "[1280 → r → 1280]", flopsG: 0.25 },
-      { name: "Fast 4-Layer Decoder", type: "Cross-Attention + Beam Search", dim: "[4 Layers, 1280]", flopsG: 1.2 },
-      { id: "out", name: "Punctuated Cursor Injection", type: "Android IME / macOS ⌥", dim: "[UTF-8 Stream]", flopsG: 0.1 } as unknown as { name: string; type: string; dim: string; flopsG: number },
-    ],
-  },
-  {
-    id: "agsl-film-neural",
-    name: "AGSL Spectral Film Emulation Graph",
-    repo: "LiLabsAI/LiEffects",
-    domain: "Deterministic GPU/CPU Color Science & Halation",
-    baseParamsB: 0.42,
-    defaultRank: 32,
-    defaultQuant: "FP16",
-    defaultTarget: "Android Vulkan GPU",
-    description:
-      "LiEffects' 40-recipe color grading pipeline (Lucent, Driftglass, Graphite, Nightfall) with bit-exact parity between 120Hz AGSL GPU shaders and C++ tiled CPU renderers.",
-    layers: [
-      { name: "Wide-Gamut Linear Decode", type: "sRGB / Display-P3 to ACEScg", dim: "[H, W, 4 FP16]", flopsG: 1.1 },
-      { name: "3D LUT & Tone Curve Matrix", type: "40 Film Recipes Parametric", dim: "[64³ Tetrahedral]", flopsG: 2.4 },
-      { name: "Chromatic Aberration & Halation", type: "Radial Spectral Dispersion", dim: "[5-Tap Kernel]", flopsG: 1.9 },
-      { name: "Stochastic Film Grain Synth", type: "Deterministic Hash Noise", dim: "[120 FPS AGSL]", flopsG: 0.8 },
-      { name: "Tiled CPU/GPU Parity Export", type: "Full-Res Canvas + JPEG", dim: "[Up to 50MP]", flopsG: 1.4 },
-    ],
-  },
-  {
-    id: "coreaudio-dsp-net",
-    name: "CoreAudio Process-Tap Psychoacoustic DSP",
-    repo: "LiLabsAI/LiSound",
-    domain: "Zero-Kext Real-Time macOS Audio Equalizer & Booster",
-    baseParamsB: 0.18,
-    defaultRank: 4,
-    defaultQuant: "FP16",
-    defaultTarget: "macOS Apple Silicon Metal",
-    description:
-      "LiSound's real-time audio processing graph capturing macOS system audio via CATapDescription into a lock-free ring buffer and AVAudioEngine 10-band biquad cascade.",
-    layers: [
-      { name: "Core Audio Process Tap", type: "Private Aggregate IOProc", dim: "[2Ch, 48kHz, 128f]", flopsG: 0.2 },
-      { name: "Lock-Free SPSC Ring Buffer", type: "Atomic Memory Barrier Queue", dim: "[Zero-Alloc]", flopsG: 0.1 },
-      { name: "Mid/Side Stereo Width Matrix", type: "Phase-Coherent Expansion", dim: "[L/R ↔ M/S]", flopsG: 0.3 },
-      { name: "10-Band Biquad EQ Cascade", type: "31Hz – 16kHz + Golden Boost", dim: "[10× IIR 64-bit]", flopsG: 0.5 },
-      { name: "Lookahead Brickwall Limiter", type: "True-Peak Safe Output", dim: "[< 2.6ms Latency]", flopsG: 0.3 },
-    ],
-  },
-];
-
-export const ENGINEERING_BEST_PRACTICES = [
-  {
-    code: "BP-01",
-    title: "Local-First & Zero-Telemetry By Default",
-    subtitle: "Privacy as an architectural invariant, not a policy toggle",
-    description:
-      "Every LI Labs application (`Offmind`, `LiResearch`, `LiSound`, `SoundVault`, `LiEffects`, `LiPlayer`) executes primary compute on the user's own silicon. When edge inference is used (`LiVoice` on Cloudflare Workers AI), audio frames are processed ephemerally in memory with zero prompt or file retention.",
-    metrics: ["0 Bytes Telemetry Egress", "100% Offline Capable (7/8 Apps)", "In-Place File Editing"],
-    illustration: "/illustrations/neural-forge.svg",
-  },
-  {
-    code: "BP-02",
-    title: "Hardware-Sympathetic Quantization & LoRA Modularity",
-    subtitle: "Fitting frontier 4B+ multimodal intelligence into mobile & laptop thermal envelopes",
-    description:
-      "Rather than shipping bloated cloud wrappers, we pair Q4_K_M GGUF weight quantization with hardware-probed KV-cache sizing, Vulkan/Metal compute shaders, and low-rank LoRA adapters ($\\Delta W = B A$). This delivers 35–65 tok/s on consumer phones and Apple Silicon Macs.",
-    metrics: ["3.4× Memory Compression (Q4_K_M)", "Auto-Verified Device Context", "Vulkan + ARM64 NEON + Metal"],
-    illustration: "/illustrations/edge-voice-dsp.svg",
-  },
-  {
-    code: "BP-03",
-    title: "Deterministic GPU/DSP Pipelines & Cryptographic Releases",
-    subtitle: "Bit-exact rendering, lock-free real-time audio, and SHA-256 provenance",
-    description:
-      "Real-time media demands zero GC pauses and deterministic math: `LiSound` bridges Core Audio `IOProc` threads via lock-free ring buffers; `LiEffects` guarantees parity between 120Hz AGSL GPU shaders and C++ CPU exports; and releases ship with `SHA256SUMS.txt` and `release-manifest.json`.",
-    metrics: ["< 2.6ms CoreAudio Tap Latency", "120Hz AGSL GPU / C++ Parity", "SHA-256 Verified Artifacts"],
-    illustration: "/illustrations/local-research-lab.svg",
   },
 ];

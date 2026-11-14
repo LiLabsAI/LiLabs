@@ -15,7 +15,7 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
 ### `/` — Interactive 3D & 3D SVG Neural Network Showcase
 ![LI Labs Home — 3D Neural Network & Model Fine-Tuning Showcase](./public/preview/home-minimal.png)
 
-### `/product` — Open-Source Ecosystem, 3D SVG Blueprints & Interactive Sandboxes
+### `/product` — Open-Source Ecosystem & Interactive Product Detail Modals
 ![LI Labs Product Catalog](./public/preview/product-minimal.png)
 
 ---
@@ -29,7 +29,8 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
   - **Minimalist Monochrome Palette with Signal Accents**: Pure black (`#040404`) and white (`#FFFFFF`) canvas accented with **Yellow (`#FACC15`)**, **Red (`#EF4444`)**, and **Pink (`#EC4899`)** neural signals.
   - **Mouse-Driven Interaction**: Smooth frame-rate-independent pointer orbit (`alpha = 1 - Math.pow(1 - 0.055, dt * 60)`), magnetic neuron excitation, click-to-trigger fine-tuning shockwaves, 360° drag rotation, and smooth wheel zoom.
 - **Open-Source Repository Showcase (`/product`)**:
-  - Showcases all 9 **LI Labs** repositories (`offmind`, `LiVoice`, `LiResearch`, `LiEffects`, `LiSound`, `LiPlayer`, `ainewshot`, `SoundVault`, `.github`) with live GitHub metadata, 3D isometric SVG pipeline blueprints, architectural best-practice proposals, and interactive sandboxes (VRAM/Throughput Calculator, AGSL Film Recipe Grading Preview, and CoreAudio 10-Band EQ).
+  - Showcases all 10 **LI Labs** repositories (`offmind`, `LiVoice`, `LiResearch`, `LiEffects`, `LiSound`, `LiPlayer`, `ainewshot`, `SoundVault`, `LiLabs`, `.github`) in a minimalist monochrome grid.
+  - Clicking any repository opens an accessible **Product Detail Modal** with verified **Details**, **Features & Highlights**, **Requirements & Stack**, and **Releases & Artifacts**.
 
 ---
 
@@ -65,14 +66,13 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
     ├── components/
     │   ├── react/
     │   │   ├── NeuralForge3D.tsx               # Three.js 3D neural network & LoRA showcase
-    │   │   ├── ProductInteractiveSandboxes.tsx # Interactive VRAM, AGSL Shader & EQ sandboxes
     │   │   ├── SiteChrome.tsx                  # Minimal floating header & footer chrome
     │   │   └── VueBridge.tsx                   # React 19 <-> Vue 3.5 lifecycle bridge
     │   └── vue/
     │       ├── NeuralSvgOverlayVue.vue         # 3D-projected SVG synaptic overlay on `/`
-    │       └── ProductCatalogVue.vue           # Repository matrix, 3D SVG pipelines & proposals
+    │       └── ProductCatalogVue.vue           # Repository matrix & Product Detail Modal
     ├── data/
-    │   └── repos.ts           # Metadata, pipelines & best practices for all 9 LiLabsAI repos
+    │   └── repos.ts           # Verified metadata, details, highlights & requirements for LiLabsAI repos
     ├── store/
     │   └── labStore.ts        # Shared reactive store across React 19, Vue 3.5 & Three.js
     ├── styles/

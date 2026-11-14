@@ -8,7 +8,6 @@ import "./styles/main.css";
 import { SiteFooter, SiteHeader } from "./components/react/SiteChrome";
 import { VueBridge } from "./components/react/VueBridge";
 import ProductCatalogVue from "./components/vue/ProductCatalogVue.vue";
-import { ProductInteractiveSandboxes } from "./components/react/ProductInteractiveSandboxes";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -41,11 +40,7 @@ const ProductApp: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-[#040404] text-white">
       <SiteHeader activePage="product" />
       <main className="flex-1">
-        {/* Vue 3.5 + TypeScript Interactive Repository Catalog & 3D Isometric Blueprints */}
         <VueBridge component={ProductCatalogVue} />
-
-        {/* React 19 + TypeScript Interactive Product Sandboxes */}
-        <ProductInteractiveSandboxes />
       </main>
       <SiteFooter activePage="product" />
     </div>

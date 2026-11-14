@@ -13,6 +13,9 @@
   - Clicking triggers a fine-tuning wave across the network; dragging rotates 360°; scrolling zooms smoothly.
 - **Inspiration Assets vs. Download Lists**:
   - When provided with brand logos or reference images, use them for visual inspiration, navbar branding, favicons, or 3D geometry—never create a logo download list or asset gallery unless explicitly asked.
+- **Product Catalog (`/product`)**:
+  - Clicking a product card opens a centered **Product Detail Modal** (`ProductCatalogVue.vue`) rather than scrolling to a bottom inspector panel.
+  - Do not include "Live Engineering Sandboxes", "3D Isometric SVG Pipelines", or "Proposed Best Practices" on `/product`; present verified repository facts under clear **"Details"**, **"Features & Highlights"**, **"Requirements & Stack"**, and **"Releases & Artifacts"** headings grounded in each repository's actual `README.md`.
 
 ## 2. Architecture & Build Invariants
 
