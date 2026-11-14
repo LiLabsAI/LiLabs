@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/theme-init.js"></script>
     <title>404 — Signal Not Found | LI Labs</title>
     <meta name="robots" content="noindex" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -13,6 +14,44 @@
       rel="stylesheet"
     />
     <style>
+      :root {
+        color-scheme: dark;
+        --bg: #040404;
+        --panel: rgba(10, 10, 10, 0.9);
+        --border: #262626;
+        --text: #f5f5f5;
+        --strong: #ffffff;
+        --body: #a3a3a3;
+        --body-accent: #e5e5e5;
+        --muted: #737373;
+        --code: #facc15;
+        --cta-bg: #ffffff;
+        --cta-text: #040404;
+        --cta-hover: #e5e5e5;
+        --sec-border: #404040;
+        --sec-text: #e5e5e5;
+        --sec-hover-border: #ffffff;
+        --sec-hover-text: #ffffff;
+      }
+      html.light {
+        color-scheme: light;
+        --bg: #f0f0f0;
+        --panel: rgba(250, 250, 250, 0.96);
+        --border: rgba(0, 0, 0, 0.14);
+        --text: #111111;
+        --strong: #0a0a0a;
+        --body: #525252;
+        --body-accent: #262626;
+        --muted: #5c5c5c;
+        --code: #854d0e;
+        --cta-bg: #111111;
+        --cta-text: #ffffff;
+        --cta-hover: #262626;
+        --sec-border: rgba(0, 0, 0, 0.22);
+        --sec-text: #333333;
+        --sec-hover-border: #111111;
+        --sec-hover-text: #0a0a0a;
+      }
       *,
       *::before,
       *::after {
@@ -22,8 +61,8 @@
       body {
         margin: 0;
         min-height: 100dvh;
-        background: #040404;
-        color: #f5f5f5;
+        background: var(--bg);
+        color: var(--text);
         font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         -webkit-font-smoothing: antialiased;
       }
@@ -36,8 +75,8 @@
       main {
         width: 100%;
         max-width: 28rem;
-        border: 1px solid #262626;
-        background: rgba(10, 10, 10, 0.9);
+        border: 1px solid var(--border);
+        background: var(--panel);
         padding: 32px;
       }
       .meta {
@@ -47,11 +86,11 @@
         font-size: 11px;
         letter-spacing: 0.22em;
         text-transform: uppercase;
-        color: #737373;
+        color: var(--muted);
         margin-bottom: 18px;
       }
       .code {
-        color: #facc15;
+        color: var(--code);
         font-weight: 600;
       }
       h1 {
@@ -59,16 +98,16 @@
         font-size: 20px;
         font-weight: 600;
         letter-spacing: -0.02em;
-        color: #ffffff;
+        color: var(--strong);
       }
       p {
         margin: 0 0 22px;
         font-size: 12px;
         line-height: 1.65;
-        color: #a3a3a3;
+        color: var(--body);
       }
       p span {
-        color: #e5e5e5;
+        color: var(--body-accent);
       }
       .actions {
         display: flex;
@@ -84,21 +123,21 @@
         transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
       }
       a.primary {
-        border: 1px solid #ffffff;
-        background: #ffffff;
-        color: #040404;
+        border: 1px solid var(--cta-bg);
+        background: var(--cta-bg);
+        color: var(--cta-text);
         font-weight: 600;
       }
       a.primary:hover {
-        background: #e5e5e5;
+        background: var(--cta-hover);
       }
       a.secondary {
-        border: 1px solid #404040;
-        color: #e5e5e5;
+        border: 1px solid var(--sec-border);
+        color: var(--sec-text);
       }
       a.secondary:hover {
-        border-color: #ffffff;
-        color: #ffffff;
+        border-color: var(--sec-hover-border);
+        color: var(--sec-hover-text);
       }
     </style>
   </head>

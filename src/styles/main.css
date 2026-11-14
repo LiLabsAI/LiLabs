@@ -12,7 +12,6 @@
     --bg-control-hover: #1d1d1d;
     --bg-header: rgba(4, 4, 4, 0.9);
     --bg-backdrop: rgba(0, 0, 0, 0.85);
-    --bg-grid-gap: rgba(255, 255, 255, 0.1);
     --bg-badge: rgba(255, 255, 255, 0.1);
     --bg-copied: #161612;
     --bg-copy-failed: #1a1111;
@@ -37,10 +36,21 @@
     --accent-yellow: #facc15;
     --accent-yellow-text: #facc15;
     --accent-yellow-border: rgba(250, 204, 21, 0.55);
+    --accent-focus: #facc15;
     --accent-red: #ef4444;
     --accent-red-text: #ef4444;
     --accent-red-border: rgba(239, 68, 68, 0.6);
     --accent-pink: #ec4899;
+
+    --mark-dot-stroke: transparent;
+    --dot-ring: transparent;
+    --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.78);
+    --fallback-glow: radial-gradient(
+      circle at 50% 48%,
+      rgba(250, 204, 21, 0.08),
+      rgba(236, 72, 153, 0.04) 28%,
+      #040404 68%
+    );
 
     --scrollbar-thumb: rgba(255, 255, 255, 0.2);
     --selection-bg: rgba(250, 204, 21, 0.25);
@@ -63,8 +73,7 @@
     --bg-control: #eaeaea;
     --bg-control-hover: #dcdcdc;
     --bg-header: rgba(240, 240, 240, 0.9);
-    --bg-backdrop: rgba(18, 18, 18, 0.42);
-    --bg-grid-gap: rgba(0, 0, 0, 0.1);
+    --bg-backdrop: rgba(240, 240, 240, 0.76);
     --bg-badge: rgba(0, 0, 0, 0.07);
     --bg-copied: rgba(250, 204, 21, 0.24);
     --bg-copy-failed: rgba(220, 38, 38, 0.12);
@@ -78,7 +87,7 @@
 
     --border-subtle: rgba(0, 0, 0, 0.11);
     --border-control: rgba(0, 0, 0, 0.16);
-    --border-strong: rgba(0, 0, 0, 0.24);
+    --border-strong: rgba(0, 0, 0, 0.22);
     --border-hover: rgba(0, 0, 0, 0.42);
 
     --cta-bg: #111111;
@@ -89,10 +98,23 @@
     --accent-yellow: #eab308;
     --accent-yellow-text: #854d0e;
     --accent-yellow-border: rgba(161, 98, 7, 0.55);
+    --accent-focus: #a16207;
     --accent-red: #dc2626;
     --accent-red-text: #b91c1c;
     --accent-red-border: rgba(185, 28, 28, 0.55);
-    --accent-pink: #db2777;
+    --accent-pink: #be185d;
+
+    --mark-dot-stroke: rgba(17, 17, 17, 0.26);
+    --dot-ring: rgba(17, 17, 17, 0.2);
+    --modal-shadow:
+      0 24px 60px -12px rgba(0, 0, 0, 0.16),
+      0 4px 16px -4px rgba(0, 0, 0, 0.08);
+    --fallback-glow: radial-gradient(
+      circle at 50% 48%,
+      rgba(180, 83, 9, 0.09),
+      rgba(190, 24, 93, 0.06) 28%,
+      #f0f0f0 68%
+    );
 
     --scrollbar-thumb: rgba(0, 0, 0, 0.22);
     --selection-bg: rgba(250, 204, 21, 0.4);

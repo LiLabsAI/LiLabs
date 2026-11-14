@@ -282,7 +282,7 @@ onUnmounted(() => {
             type="search"
             placeholder="Search..."
             aria-label="Search repositories"
-            class="w-48 px-3 py-1.5 bg-[var(--bg-panel)] border border-[var(--border-control)] text-xs font-mono text-[var(--text-strong)] placeholder:text-[var(--text-muted)] transition-[border-color] duration-150 ease-[var(--ease-out)] focus:outline-none focus:border-[var(--accent-yellow)]"
+            class="w-48 px-3 py-1.5 bg-[var(--bg-panel)] border border-[var(--border-control)] text-xs font-mono text-[var(--text-strong)] placeholder:text-[var(--text-muted)] transition-[border-color] duration-150 ease-[var(--ease-out)] focus:outline-none focus:border-[var(--accent-focus)]"
           />
         </div>
       </div>
@@ -307,7 +307,7 @@ onUnmounted(() => {
       <!-- Repositories Minimalist Monochrome Grid -->
       <div
         v-else
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--bg-grid-gap)] border border-[var(--border-subtle)]"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border-t border-l border-[var(--border-subtle)]"
       >
         <article
           v-for="(repo, idx) in filteredRepos"
@@ -318,13 +318,13 @@ onUnmounted(() => {
           @click="openRepoModal(repo.id)"
           @keydown.enter.prevent="openRepoModal(repo.id)"
           @keydown.space.prevent="openRepoModal(repo.id)"
-          class="group ui-card p-6 bg-[var(--bg-surface)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-yellow)] flex flex-col justify-between cursor-pointer"
+          class="group ui-card p-6 bg-[var(--bg-surface)] border-r border-b border-[var(--border-subtle)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-focus)] flex flex-col justify-between cursor-pointer"
         >
           <div class="space-y-4">
             <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
               <span class="tabular-nums">{{ String(idx + 1).padStart(2, "0") }} / {{ repo.primaryLanguage }}</span>
               <span
-                class="w-2 h-2 rounded-full ui-card-dot shrink-0"
+                class="w-2 h-2 rounded-full ui-card-dot ring-1 ring-[var(--dot-ring)] shrink-0"
                 :style="{
                   backgroundColor:
                     idx % 3 === 0
@@ -377,7 +377,7 @@ onUnmounted(() => {
       >
         <div
           ref="modalPanelRef"
-          class="ui-modal-panel relative w-full max-w-2xl max-h-[85dvh] flex flex-col bg-[var(--bg-modal)] border border-[var(--border-strong)] text-[var(--text-strong)] shadow-2xl overflow-hidden"
+          class="ui-modal-panel relative w-full max-w-2xl max-h-[85dvh] flex flex-col bg-[var(--bg-modal)] border border-[var(--border-strong)] text-[var(--text-strong)] shadow-[var(--modal-shadow)] overflow-hidden"
         >
           <!-- Modal Header -->
           <div class="p-6 border-b border-[var(--border-subtle)] flex items-start justify-between gap-4 bg-[var(--bg-panel)]">
@@ -406,7 +406,7 @@ onUnmounted(() => {
               type="button"
               @click="closeRepoModal"
               aria-label="Close modal"
-              class="ui-pressable w-8 h-8 flex items-center justify-center border border-[var(--border-control)] bg-[var(--bg-control)] hover:bg-[var(--cta-bg)] hover:text-[var(--cta-text)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-yellow)] text-[var(--text-control)] font-mono text-xs cursor-pointer shrink-0"
+              class="ui-pressable w-8 h-8 flex items-center justify-center border border-[var(--border-control)] bg-[var(--bg-control)] hover:bg-[var(--cta-bg)] hover:text-[var(--cta-text)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-focus)] text-[var(--text-control)] font-mono text-xs cursor-pointer shrink-0"
             >
               ✕
             </button>
@@ -439,7 +439,7 @@ onUnmounted(() => {
                   class="flex items-start gap-2.5 text-xs text-[var(--text-control)] leading-relaxed max-w-[65ch]"
                 >
                   <span
-                    class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0"
+                    class="mt-1.5 w-1.5 h-1.5 rounded-full ring-1 ring-[var(--dot-ring)] shrink-0"
                     :style="{
                       backgroundColor:
                         hIdx % 3 === 0

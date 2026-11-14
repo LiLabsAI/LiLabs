@@ -44,13 +44,13 @@ const DARK_PALETTE = [
 
 const LIGHT_PALETTE = [
   new THREE.Color(0x171717), // 0: Charcoal Ink
-  new THREE.Color(0xd97706), // 1: Signal Amber-Yellow
-  new THREE.Color(0xdc2626), // 2: Deep Signal Red
-  new THREE.Color(0xdb2777), // 3: Fine-Tune Rose-Pink
+  new THREE.Color(0xb45309), // 1: Signal Amber-Gold
+  new THREE.Color(0xb91c1c), // 2: Deep Crimson Red
+  new THREE.Color(0xbe185d), // 3: Deep Rose-Pink
 ];
 
 const DARK_PALETTE_HEX = ["#ffffff", "#facc15", "#ef4444", "#ec4899"];
-const LIGHT_PALETTE_HEX = ["#171717", "#ca8a04", "#dc2626", "#db2777"];
+const LIGHT_PALETTE_HEX = ["#171717", "#b45309", "#b91c1c", "#be185d"];
 
 interface LiCoreResources {
   group: THREE.Group;
@@ -188,18 +188,21 @@ export const NeuralForge3D: React.FC = () => {
       setWebglFallback(true);
       return;
     }
-    renderer.setClearColor(0x040404, 1);
+    const initialIsLight = vueLabState.theme === "light";
+    const initialClearHex = initialIsLight ? 0xf0f0f0 : 0x040404;
+    renderer.setClearColor(initialClearHex, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x040404, 0.038);
+    scene.fog = new THREE.FogExp2(initialClearHex, 0.038);
 
     const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 100);
     camera.position.set(0, 0.4, 13.2);
 
-    // Minimalist Monochrome + Subtle Accent Lighting
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    // Minimalist Monochrome + Subtle Accent Lighting (re-calibrated per theme)
+    const ambientLight = new THREE.AmbientLight(0xffffff, initialIsLight ? 0.62 : 0.9);
+    scene.add(ambientLight);
+    const keyLight = new THREE.DirectionalLight(0xffffff, initialIsLight ? 1.15 : 1.8);
     keyLight.position.set(6, 10, 8);
     scene.add(keyLight);
 
@@ -473,6 +476,7 @@ export const NeuralForge3D: React.FC = () => {
     const projTopVec = new THREE.Vector3();
     const projBotVec = new THREE.Vector3();
 
+    const initHex = initialIsLight ? LIGHT_PALETTE_HEX : DARK_PALETTE_HEX;
     const clusterCache: ProjectedCluster[] = layerX.map((_, idx) => ({
       index: idx,
       x: 500,
@@ -483,7 +487,7 @@ export const NeuralForge3D: React.FC = () => {
       bottomY: 600,
       scale: 1,
       energy: 0.25,
-      accentHex: idx === 2 ? "#facc15" : idx === 3 ? "#ec4899" : idx === 4 ? "#ef4444" : "#ffffff",
+      accentHex: idx === 2 ? initHex[1] : idx === 3 ? initHex[3] : idx === 4 ? initHex[2] : initHex[0],
     }));
     const prevProjX = new Float64Array(layerX.length);
     const prevProjY = new Float64Array(layerX.length);
@@ -509,23 +513,28 @@ export const NeuralForge3D: React.FC = () => {
         scene.fog.color.setHex(clearHex);
       }
 
-      liCore.bodyMat.color.setHex(isLightTheme ? 0xf5f5f5 : 0x0a0a0a);
-      liCore.bodyMat.metalness = isLightTheme ? 0.25 : 0.8;
-      liCore.bodyMat.roughness = isLightTheme ? 0.45 : 0.2;
+      ambientLight.intensity = isLightTheme ? 0.62 : 0.9;
+      keyLight.intensity = isLightTheme ? 1.15 : 1.8;
+
+      liCore.bodyMat.color.setHex(isLightTheme ? 0xe4e4e7 : 0x0a0a0a);
+      liCore.bodyMat.metalness = isLightTheme ? 0.15 : 0.8;
+      liCore.bodyMat.roughness = isLightTheme ? 0.55 : 0.2;
       liCore.edgeMat.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
-      liCore.dotMat.color.setHex(0xfacc15);
+      liCore.dotMat.color.setHex(isLightTheme ? 0xeab308 : 0xfacc15);
 
       ringMatWhite.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
-      ringMatWhite.opacity = isLightTheme ? 0.22 : 0.32;
-      ringMatPink.color.setHex(isLightTheme ? 0xdb2777 : 0xec4899);
-      ringMatYellow.color.setHex(isLightTheme ? 0xd97706 : 0xfacc15);
+      ringMatWhite.opacity = 0.32;
+      ringMatPink.color.setHex(isLightTheme ? 0xbe185d : 0xec4899);
+      ringMatPink.opacity = isLightTheme ? 0.44 : 0.38;
+      ringMatYellow.color.setHex(isLightTheme ? 0xb45309 : 0xfacc15);
+      ringMatYellow.opacity = isLightTheme ? 0.42 : 0.28;
       haloMat.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
-      haloMat.opacity = isLightTheme ? 0.24 : 0.35;
+      haloMat.opacity = isLightTheme ? 0.28 : 0.35;
       dustMat.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
-      dustMat.opacity = isLightTheme ? 0.16 : 0.24;
+      dustMat.opacity = isLightTheme ? 0.2 : 0.24;
 
       lineMat.blending = isLightTheme ? THREE.NormalBlending : THREE.AdditiveBlending;
-      lineMat.opacity = isLightTheme ? 0.36 : 0.42;
+      lineMat.opacity = isLightTheme ? 0.44 : 0.42;
       lineMat.needsUpdate = true;
 
       for (let p = 0; p < pulseCount; p++) {
@@ -1064,8 +1073,7 @@ export const NeuralForge3D: React.FC = () => {
         data-webgl="fallback"
         className="fixed inset-0 w-screen h-dvh overflow-hidden bg-[var(--bg-canvas)] select-none"
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 50% 48%, rgba(250, 204, 21, 0.1), rgba(236, 72, 153, 0.05) 28%, transparent 68%)",
+          backgroundImage: "var(--fallback-glow)",
         }}
       />
     );
@@ -1081,7 +1089,7 @@ export const NeuralForge3D: React.FC = () => {
         tabIndex={0}
         aria-label="Interactive 3D neural network showcase. Drag or use arrow keys to orbit, scroll to zoom, click or press Space to pulse."
         style={{ touchAction: "none" }}
-        className="w-full h-full block cursor-crosshair active:cursor-grabbing touch-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-yellow)]/60"
+        className="w-full h-full block cursor-crosshair active:cursor-grabbing touch-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-focus)]/80"
       />
     </div>
   );

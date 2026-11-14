@@ -32,14 +32,14 @@ const forwardPaths = computed(() => {
       color:
         i === 1 || i === 2
           ? isLight.value
-            ? "#ca8a04"
+            ? "#b45309"
             : "#facc15"
           : i === 3
             ? isLight.value
-              ? "#db2777"
+              ? "#be185d"
               : "#ec4899"
             : mono,
-      opacity: i >= 1 && i <= 3 ? 0.72 : 0.22,
+      opacity: i >= 1 && i <= 3 ? (isLight.value ? 0.8 : 0.72) : 0.22,
     });
 
     // Lower backprop gradient arc (Red / Pink / Monochrome)
@@ -49,14 +49,14 @@ const forwardPaths = computed(() => {
       color:
         i === 2
           ? isLight.value
-            ? "#dc2626"
+            ? "#b91c1c"
             : "#ef4444"
           : i === 3 || i === 4
             ? isLight.value
-              ? "#db2777"
+              ? "#be185d"
               : "#ec4899"
             : mono,
-      opacity: i >= 2 && i <= 4 ? 0.68 : 0.2,
+      opacity: i >= 2 && i <= 4 ? (isLight.value ? 0.78 : 0.68) : 0.2,
     });
   }
   return list;
@@ -75,14 +75,14 @@ const skipArcs = computed(() => {
       d: `M ${c0.topX} ${c0.topY} C ${c0.topX + 180} ${c0.topY - 155}, ${c3.topX - 140} ${
         c3.topY - 155
       }, ${c3.topX} ${c3.topY}`,
-      stroke: isLight.value ? "#ca8a04" : "#facc15",
+      stroke: isLight.value ? "#b45309" : "#facc15",
     },
     {
       id: "skip-bot",
       d: `M ${c6.bottomX} ${c6.bottomY} C ${c6.bottomX - 180} ${c6.bottomY + 155}, ${
         c3.bottomX + 140
       } ${c3.bottomY + 155}, ${c3.bottomX} ${c3.bottomY}`,
-      stroke: isLight.value ? "#db2777" : "#ec4899",
+      stroke: isLight.value ? "#be185d" : "#ec4899",
     },
   ];
 });
@@ -98,7 +98,7 @@ const skipArcs = computed(() => {
     <defs>
       <radialGradient id="cursorFieldGlow" cx="50%" cy="50%" r="50%">
         <stop offset="0%" :stop-color="isLight ? '#171717' : '#ffffff'" :stop-opacity="isLight ? 0.08 : 0.16" />
-        <stop offset="50%" :stop-color="isLight ? '#ca8a04' : '#facc15'" :stop-opacity="isLight ? 0.07 : 0.05" />
+        <stop offset="50%" :stop-color="isLight ? '#b45309' : '#facc15'" :stop-opacity="isLight ? 0.07 : 0.05" />
         <stop offset="100%" :stop-color="isLight ? '#f0f0f0' : '#000000'" stop-opacity="0" />
       </radialGradient>
     </defs>
@@ -156,7 +156,7 @@ const skipArcs = computed(() => {
         stroke-width="0.9"
         stroke-dasharray="2 3"
       />
-      <circle :cx="pointer.x" :cy="pointer.y" r="2.2" :fill="isLight ? '#ca8a04' : '#facc15'" />
+      <circle :cx="pointer.x" :cy="pointer.y" r="2.2" :fill="isLight ? '#b45309' : '#facc15'" />
 
       <g v-for="node in hovered" :key="`hover-${node.id}`">
         <path

@@ -11,7 +11,15 @@ export const LiMarkSvg: React.FC<{ className?: string }> = ({ className = "w-6 h
     aria-label="LI Labs"
   >
     <path d="M28 25H54V97H84L108 121H51L28 98V25Z" fill="currentColor" />
-    <rect x="94" y="25" width="26" height="25" fill="#FACC15" />
+    <rect
+      x="94"
+      y="25"
+      width="26"
+      height="25"
+      fill="#FACC15"
+      stroke="var(--mark-dot-stroke)"
+      strokeWidth="2.5"
+    />
     <path d="M94 58H120V121L94 95V58Z" fill="currentColor" />
   </svg>
 );
@@ -60,7 +68,7 @@ export const SiteHeader: React.FC<{ activePage: "home" | "product" }> = ({ activ
             }`}
           >
             <span>PRODUCT</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-yellow)] shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-yellow)] ring-1 ring-[var(--dot-ring)] shrink-0" />
           </a>
           <a
             href="https://github.com/LiLabsAI"
@@ -146,7 +154,7 @@ export const SiteFooter: React.FC<{ activePage?: "home" | "product" }> = ({
               }`}
               title="Fine-Tune Wave Mode"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-yellow)] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-yellow)] ring-1 ring-[var(--dot-ring)] shrink-0" />
               <span className="hidden md:inline">FINE-TUNE</span>
             </button>
             <button
@@ -159,7 +167,7 @@ export const SiteFooter: React.FC<{ activePage?: "home" | "product" }> = ({
               }`}
               title="Synapse Backprop Mode"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-red)] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-red)] ring-1 ring-[var(--dot-ring)] shrink-0" />
               <span className="hidden md:inline">BACKPROP</span>
             </button>
           </div>

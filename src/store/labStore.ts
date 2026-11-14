@@ -91,15 +91,15 @@ const defaultClusters: ProjectedCluster[] = Array.from({ length: 7 }, (_, i) => 
   accentHex:
     i === 2
       ? initialTheme === "light"
-        ? "#ca8a04"
+        ? "#b45309"
         : "#facc15"
       : i === 3
         ? initialTheme === "light"
-          ? "#db2777"
+          ? "#be185d"
           : "#ec4899"
         : i === 4
           ? initialTheme === "light"
-            ? "#dc2626"
+            ? "#b91c1c"
             : "#ef4444"
           : initialTheme === "light"
             ? "#171717"
