@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-canvas: #040404;
+    --bg-panel: #0a0a0a;
+    --bg-elevated: #111111;
+    --text-primary: #fafafa;
+    --text-secondary: #a3a3a3;
+    --text-muted: #525252;
+    --accent-yellow: #facc15;
+    --accent-red: #ef4444;
+    --accent-pink: #ec4899;
+    --font-sans: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+  }
+
+  html,
+  body {
+    background-color: #040404;
+    color: #fafafa;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::selection {
+    background: rgba(250, 204, 21, 0.25);
+    color: #ffffff;
+  }
+}
+
+@keyframes pulseDash {
+  0% {
+    stroke-dashoffset: 160;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes reverseDash {
+  0% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 160;
+  }
+}
+
+.svg-flow-forward {
+  stroke-dasharray: 6 14;
+  animation: pulseDash 2.4s linear infinite;
+}
+
+.svg-flow-backward {
+  stroke-dasharray: 4 16;
+  animation: reverseDash 1.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .svg-flow-forward,
+  .svg-flow-backward {
+    animation: none !important;
+  }
+}
