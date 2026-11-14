@@ -11,7 +11,7 @@ import ProductCatalogVue from "./components/vue/ProductCatalogVue.vue";
 
 const ProductApp: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#040404] text-white">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-canvas)] text-[var(--text-primary)]">
       <SiteHeader activePage="product" />
       <main className="flex-1">
         <VueBridge component={ProductCatalogVue} />

@@ -2,15 +2,50 @@
 
 @layer base {
   :root {
+    color-scheme: dark;
     --bg-canvas: #040404;
-    --bg-panel: #0a0a0a;
-    --bg-elevated: #111111;
+    --bg-surface: #050505;
+    --bg-surface-hover: #0d0d0d;
+    --bg-panel: #0b0b0b;
+    --bg-modal: #080808;
+    --bg-control: #121212;
+    --bg-control-hover: #1d1d1d;
+    --bg-header: rgba(4, 4, 4, 0.9);
+    --bg-backdrop: rgba(0, 0, 0, 0.85);
+    --bg-grid-gap: rgba(255, 255, 255, 0.1);
+    --bg-badge: rgba(255, 255, 255, 0.1);
+    --bg-copied: #161612;
+    --bg-copy-failed: #1a1111;
+
     --text-primary: #fafafa;
+    --text-strong: #ffffff;
+    --text-body: #e5e5e5;
+    --text-control: #d4d4d4;
     --text-secondary: #a3a3a3;
-    --text-muted: #525252;
+    --text-muted: #737373;
+
+    --border-subtle: rgba(255, 255, 255, 0.1);
+    --border-control: rgba(255, 255, 255, 0.15);
+    --border-strong: rgba(255, 255, 255, 0.25);
+    --border-hover: rgba(255, 255, 255, 0.4);
+
+    --cta-bg: #ffffff;
+    --cta-text: #000000;
+    --cta-hover-bg: #facc15;
+    --cta-hover-text: #000000;
+
     --accent-yellow: #facc15;
+    --accent-yellow-text: #facc15;
+    --accent-yellow-border: rgba(250, 204, 21, 0.55);
     --accent-red: #ef4444;
+    --accent-red-text: #ef4444;
+    --accent-red-border: rgba(239, 68, 68, 0.6);
     --accent-pink: #ec4899;
+
+    --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+    --selection-bg: rgba(250, 204, 21, 0.25);
+    --selection-text: #ffffff;
+
     --font-sans: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -18,11 +53,60 @@
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
+  html.light {
+    color-scheme: light;
+    --bg-canvas: #f0f0f0;
+    --bg-surface: #f7f7f7;
+    --bg-surface-hover: #ffffff;
+    --bg-panel: #e6e6e6;
+    --bg-modal: #fafafa;
+    --bg-control: #eaeaea;
+    --bg-control-hover: #dcdcdc;
+    --bg-header: rgba(240, 240, 240, 0.9);
+    --bg-backdrop: rgba(18, 18, 18, 0.42);
+    --bg-grid-gap: rgba(0, 0, 0, 0.1);
+    --bg-badge: rgba(0, 0, 0, 0.07);
+    --bg-copied: rgba(250, 204, 21, 0.24);
+    --bg-copy-failed: rgba(220, 38, 38, 0.12);
+
+    --text-primary: #111111;
+    --text-strong: #0a0a0a;
+    --text-body: #262626;
+    --text-control: #333333;
+    --text-secondary: #525252;
+    --text-muted: #5c5c5c;
+
+    --border-subtle: rgba(0, 0, 0, 0.11);
+    --border-control: rgba(0, 0, 0, 0.16);
+    --border-strong: rgba(0, 0, 0, 0.24);
+    --border-hover: rgba(0, 0, 0, 0.42);
+
+    --cta-bg: #111111;
+    --cta-text: #ffffff;
+    --cta-hover-bg: #facc15;
+    --cta-hover-text: #111111;
+
+    --accent-yellow: #eab308;
+    --accent-yellow-text: #854d0e;
+    --accent-yellow-border: rgba(161, 98, 7, 0.55);
+    --accent-red: #dc2626;
+    --accent-red-text: #b91c1c;
+    --accent-red-border: rgba(185, 28, 28, 0.55);
+    --accent-pink: #db2777;
+
+    --scrollbar-thumb: rgba(0, 0, 0, 0.22);
+    --selection-bg: rgba(250, 204, 21, 0.4);
+    --selection-text: #111111;
+  }
+
   html,
   body {
-    background-color: #040404;
-    color: #fafafa;
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
     font-family: var(--font-sans);
+    transition:
+      background-color 180ms var(--ease-out),
+      color 180ms var(--ease-out);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     margin: 0;
@@ -30,8 +114,8 @@
   }
 
   ::selection {
-    background: rgba(250, 204, 21, 0.25);
-    color: #ffffff;
+    background: var(--selection-bg);
+    color: var(--selection-text);
   }
 }
 
@@ -117,7 +201,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .ui-card:hover {
-    background-color: #0d0d0d;
+    background-color: var(--bg-surface-hover);
   }
 
   .ui-card:hover .ui-card-dot {
@@ -165,7 +249,7 @@
 
 .ui-scroll-body {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -3,9 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   labActions,
+  subscribeLabStore,
   vueLabState,
   type HoveredNeuron,
   type ProjectedCluster,
+  type ThemeMode,
 } from "../../store/labStore";
 
 interface NeuronNode {
@@ -33,16 +35,31 @@ interface SignalPulse {
   colorType: 0 | 1 | 2 | 3;
 }
 
-const PALETTE = [
+const DARK_PALETTE = [
   new THREE.Color(0xffffff), // 0: Crisp White
   new THREE.Color(0xfacc15), // 1: Signal Yellow
   new THREE.Color(0xef4444), // 2: Gradient Red
   new THREE.Color(0xec4899), // 3: Fine-Tune Pink
 ];
 
-const PALETTE_HEX = ["#ffffff", "#facc15", "#ef4444", "#ec4899"];
+const LIGHT_PALETTE = [
+  new THREE.Color(0x171717), // 0: Charcoal Ink
+  new THREE.Color(0xd97706), // 1: Signal Amber-Yellow
+  new THREE.Color(0xdc2626), // 2: Deep Signal Red
+  new THREE.Color(0xdb2777), // 3: Fine-Tune Rose-Pink
+];
 
-function createMinimalLiWireCore(): THREE.Group {
+const DARK_PALETTE_HEX = ["#ffffff", "#facc15", "#ef4444", "#ec4899"];
+const LIGHT_PALETTE_HEX = ["#171717", "#ca8a04", "#dc2626", "#db2777"];
+
+interface LiCoreResources {
+  group: THREE.Group;
+  bodyMat: THREE.MeshStandardMaterial;
+  edgeMat: THREE.LineBasicMaterial;
+  dotMat: THREE.MeshBasicMaterial;
+}
+
+function createMinimalLiWireCore(): LiCoreResources {
   const group = new THREE.Group();
 
   const toWorld = (px: number, py: number): [number, number] => [
@@ -127,7 +144,7 @@ function createMinimalLiWireCore(): THREE.Group {
   dotMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(dotGeom, 15), whiteEdgeMat));
   group.add(dotMesh);
 
-  return group;
+  return { group, bodyMat: darkMat, edgeMat: whiteEdgeMat, dotMat: yellowDotMat };
 }
 
 function disposeObjectResources(root: THREE.Object3D): void {
@@ -196,8 +213,8 @@ export const NeuralForge3D: React.FC = () => {
 
     // Central Minimalist 3D "Li" Wireframe Core + Dual Gyroscopic Fine-Tuning Rings
     const liCore = createMinimalLiWireCore();
-    liCore.scale.setScalar(0.92);
-    coreGroup.add(liCore);
+    liCore.group.scale.setScalar(0.92);
+    coreGroup.add(liCore.group);
 
     const ringGeom1 = new THREE.TorusGeometry(1.75, 0.012, 12, 96);
     const ringMatWhite = new THREE.MeshBasicMaterial({
@@ -361,7 +378,7 @@ export const NeuralForge3D: React.FC = () => {
     const pulseInstanced = new THREE.InstancedMesh(pulseGeom, pulseMat, pulseCount);
     pulseInstanced.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     for (let p = 0; p < pulseCount; p++) {
-      pulseInstanced.setColorAt(p, PALETTE[pulses[p].colorType]);
+      pulseInstanced.setColorAt(p, DARK_PALETTE[pulses[p].colorType]);
     }
     if (pulseInstanced.instanceColor) {
       pulseInstanced.instanceColor.needsUpdate = true;
@@ -475,6 +492,63 @@ export const NeuralForge3D: React.FC = () => {
     let prevPointerY = -1;
     let prevHoveredCount = -1;
 
+    let activeTheme: ThemeMode = vueLabState.theme;
+    let isLightTheme = activeTheme === "light";
+    let activePalette = isLightTheme ? LIGHT_PALETTE : DARK_PALETTE;
+    let activePaletteHex = isLightTheme ? LIGHT_PALETTE_HEX : DARK_PALETTE_HEX;
+
+    const applySceneTheme = (nextTheme: ThemeMode) => {
+      activeTheme = nextTheme;
+      isLightTheme = nextTheme === "light";
+      activePalette = isLightTheme ? LIGHT_PALETTE : DARK_PALETTE;
+      activePaletteHex = isLightTheme ? LIGHT_PALETTE_HEX : DARK_PALETTE_HEX;
+
+      const clearHex = isLightTheme ? 0xf0f0f0 : 0x040404;
+      renderer.setClearColor(clearHex, 1);
+      if (scene.fog instanceof THREE.FogExp2) {
+        scene.fog.color.setHex(clearHex);
+      }
+
+      liCore.bodyMat.color.setHex(isLightTheme ? 0xf5f5f5 : 0x0a0a0a);
+      liCore.bodyMat.metalness = isLightTheme ? 0.25 : 0.8;
+      liCore.bodyMat.roughness = isLightTheme ? 0.45 : 0.2;
+      liCore.edgeMat.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
+      liCore.dotMat.color.setHex(0xfacc15);
+
+      ringMatWhite.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
+      ringMatWhite.opacity = isLightTheme ? 0.22 : 0.32;
+      ringMatPink.color.setHex(isLightTheme ? 0xdb2777 : 0xec4899);
+      ringMatYellow.color.setHex(isLightTheme ? 0xd97706 : 0xfacc15);
+      haloMat.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
+      haloMat.opacity = isLightTheme ? 0.24 : 0.35;
+      dustMat.color.setHex(isLightTheme ? 0x171717 : 0xffffff);
+      dustMat.opacity = isLightTheme ? 0.16 : 0.24;
+
+      lineMat.blending = isLightTheme ? THREE.NormalBlending : THREE.AdditiveBlending;
+      lineMat.opacity = isLightTheme ? 0.36 : 0.42;
+      lineMat.needsUpdate = true;
+
+      for (let p = 0; p < pulseCount; p++) {
+        pulseInstanced.setColorAt(p, activePalette[pulses[p].colorType]);
+      }
+      if (pulseInstanced.instanceColor) {
+        pulseInstanced.instanceColor.needsUpdate = true;
+      }
+
+      for (let idx = 0; idx < clusterCache.length; idx++) {
+        clusterCache[idx].accentHex =
+          idx === 2
+            ? activePaletteHex[1]
+            : idx === 3
+              ? activePaletteHex[3]
+              : idx === 4
+                ? activePaletteHex[2]
+                : activePaletteHex[0];
+      }
+      wakeRender(400);
+      scheduleFrame();
+    };
+
     let lastTime = performance.now();
     let frameCount = 0;
 
@@ -586,7 +660,7 @@ export const NeuralForge3D: React.FC = () => {
 
         if (cursorBoost > 0.32) {
           const cIdx = (i % 3) + 1;
-          tempColor.copy(PALETTE[cIdx]);
+          tempColor.copy(activePalette[cIdx]);
         } else if (waveBoost > 0.35) {
           const cIdx =
             mode === "finetune"
@@ -596,11 +670,13 @@ export const NeuralForge3D: React.FC = () => {
                 : n.colorType === 0
                   ? 3
                   : n.colorType;
-          tempColor.copy(PALETTE[cIdx]);
+          tempColor.copy(activePalette[cIdx]);
         } else if (n.colorType !== 0 && n.energy > 0.45) {
-          tempColor.copy(PALETTE[n.colorType]);
+          tempColor.copy(activePalette[n.colorType]);
         } else {
-          const luma = 0.45 + n.energy * 0.55;
+          const luma = isLightTheme
+            ? Math.max(0.08, 0.56 - n.energy * 0.46)
+            : 0.45 + n.energy * 0.55;
           tempColor.setRGB(luma, luma, luma);
         }
         neuronInstanced.setColorAt(i, tempColor);
@@ -641,18 +717,21 @@ export const NeuralForge3D: React.FC = () => {
         if (pairEnergy > 0.58) {
           const c =
             na.colorType !== 0
-              ? PALETTE[na.colorType]
+              ? activePalette[na.colorType]
               : nb.colorType !== 0
-                ? PALETTE[nb.colorType]
-                : PALETTE[1];
-          lineColors[base] = c.r * pairEnergy;
-          lineColors[base + 1] = c.g * pairEnergy;
-          lineColors[base + 2] = c.b * pairEnergy;
-          lineColors[base + 3] = c.r * pairEnergy;
-          lineColors[base + 4] = c.g * pairEnergy;
-          lineColors[base + 5] = c.b * pairEnergy;
+                ? activePalette[nb.colorType]
+                : activePalette[1];
+          const intensity = isLightTheme ? 1 : pairEnergy;
+          lineColors[base] = c.r * intensity;
+          lineColors[base + 1] = c.g * intensity;
+          lineColors[base + 2] = c.b * intensity;
+          lineColors[base + 3] = c.r * intensity;
+          lineColors[base + 4] = c.g * intensity;
+          lineColors[base + 5] = c.b * intensity;
         } else {
-          const gray = 0.14 + pairEnergy * 0.55;
+          const gray = isLightTheme
+            ? Math.max(0.15, 0.72 - pairEnergy * 0.52)
+            : 0.14 + pairEnergy * 0.55;
           lineColors[base] = gray;
           lineColors[base + 1] = gray;
           lineColors[base + 2] = gray;
@@ -762,7 +841,7 @@ export const NeuralForge3D: React.FC = () => {
                 x: sx,
                 y: sy,
                 dist,
-                color: PALETTE_HEX[n.colorType === 0 ? (n.id % 3) + 1 : n.colorType],
+                color: activePaletteHex[n.colorType === 0 ? (n.id % 3) + 1 : n.colorType],
               });
             }
           }
@@ -950,10 +1029,17 @@ export const NeuralForge3D: React.FC = () => {
     canvas.addEventListener("webglcontextlost", onContextLost);
     canvas.addEventListener("webglcontextrestored", onContextRestored);
 
-    scheduleFrame();
+    const unsubscribeLab = subscribeLabStore(() => {
+      if (vueLabState.theme !== activeTheme) {
+        applySceneTheme(vueLabState.theme);
+      }
+    });
+
+    applySceneTheme(vueLabState.theme);
 
     return () => {
       isDisposed = true;
+      unsubscribeLab();
       cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
       window.removeEventListener("pointermove", onPointerMove);
@@ -976,10 +1062,10 @@ export const NeuralForge3D: React.FC = () => {
     return (
       <div
         data-webgl="fallback"
-        className="fixed inset-0 w-screen h-dvh overflow-hidden bg-[#040404] select-none"
+        className="fixed inset-0 w-screen h-dvh overflow-hidden bg-[var(--bg-canvas)] select-none"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 50% 48%, rgba(250, 204, 21, 0.08), rgba(236, 72, 153, 0.04) 28%, #040404 68%)",
+            "radial-gradient(circle at 50% 48%, rgba(250, 204, 21, 0.1), rgba(236, 72, 153, 0.05) 28%, transparent 68%)",
         }}
       />
     );
@@ -988,14 +1074,14 @@ export const NeuralForge3D: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 w-screen h-dvh overflow-hidden bg-[#040404] select-none"
+      className="fixed inset-0 w-screen h-dvh overflow-hidden bg-[var(--bg-canvas)] select-none"
     >
       <canvas
         ref={canvasRef}
         tabIndex={0}
         aria-label="Interactive 3D neural network showcase. Drag or use arrow keys to orbit, scroll to zoom, click or press Space to pulse."
         style={{ touchAction: "none" }}
-        className="w-full h-full block cursor-crosshair active:cursor-grabbing touch-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#facc15]/60"
+        className="w-full h-full block cursor-crosshair active:cursor-grabbing touch-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-yellow)]/60"
       />
     </div>
   );

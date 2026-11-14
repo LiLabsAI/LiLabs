@@ -12,7 +12,7 @@ import NeuralSvgOverlayVue from "./components/vue/NeuralSvgOverlayVue.vue";
 
 const HomeApp: React.FC = () => {
   return (
-    <div className="relative w-screen h-dvh overflow-hidden bg-[#040404] text-white select-none">
+    <div className="relative w-screen h-dvh overflow-hidden bg-[var(--bg-canvas)] text-[var(--text-primary)] select-none">
       <SiteHeader activePage="home" />
       <main className="w-screen h-dvh overflow-hidden">
         {/* React 19 + Three.js WebGL 3D Neural Network & Model Fine-Tuning Showcase */}

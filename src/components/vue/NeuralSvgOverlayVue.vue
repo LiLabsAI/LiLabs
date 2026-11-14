@@ -5,10 +5,13 @@ import { vueLabState } from "../../store/labStore";
 const clusters = computed(() => vueLabState.projectedClusters);
 const pointer = computed(() => vueLabState.pointerSvg);
 const hovered = computed(() => vueLabState.hoveredNeurons);
+const isLight = computed(() => vueLabState.theme === "light");
+const spineColor = computed(() => (isLight.value ? "#171717" : "#ffffff"));
 
 const forwardPaths = computed(() => {
   const list: Array<{ id: string; d: string; color: string; opacity: number }> = [];
   const pts = clusters.value;
+  const mono = spineColor.value;
   for (let i = 0; i < pts.length - 1; i++) {
     const a = pts[i];
     const b = pts[i + 1];
@@ -18,23 +21,41 @@ const forwardPaths = computed(() => {
     list.push({
       id: `spine-${i}`,
       d: `M ${a.x} ${a.y} C ${mx} ${a.y - 45}, ${mx} ${b.y + 45}, ${b.x} ${b.y}`,
-      color: "#ffffff",
-      opacity: 0.38,
+      color: mono,
+      opacity: isLight.value ? 0.28 : 0.38,
     });
 
-    // Upper attention arc (Yellow / White)
+    // Upper attention arc (Yellow / Monochrome)
     list.push({
       id: `upper-${i}`,
       d: `M ${a.topX} ${a.topY} C ${mx} ${a.topY - 70}, ${mx} ${b.topY - 70}, ${b.topX} ${b.topY}`,
-      color: i === 1 || i === 2 ? "#facc15" : i === 3 ? "#ec4899" : "#ffffff",
+      color:
+        i === 1 || i === 2
+          ? isLight.value
+            ? "#ca8a04"
+            : "#facc15"
+          : i === 3
+            ? isLight.value
+              ? "#db2777"
+              : "#ec4899"
+            : mono,
       opacity: i >= 1 && i <= 3 ? 0.72 : 0.22,
     });
 
-    // Lower backprop gradient arc (Red / Pink / White)
+    // Lower backprop gradient arc (Red / Pink / Monochrome)
     list.push({
       id: `lower-${i}`,
       d: `M ${b.bottomX} ${b.bottomY} C ${mx} ${b.bottomY + 70}, ${mx} ${a.bottomY + 70}, ${a.bottomX} ${a.bottomY}`,
-      color: i === 2 ? "#ef4444" : i === 3 || i === 4 ? "#ec4899" : "#ffffff",
+      color:
+        i === 2
+          ? isLight.value
+            ? "#dc2626"
+            : "#ef4444"
+          : i === 3 || i === 4
+            ? isLight.value
+              ? "#db2777"
+              : "#ec4899"
+            : mono,
       opacity: i >= 2 && i <= 4 ? 0.68 : 0.2,
     });
   }
@@ -54,14 +75,14 @@ const skipArcs = computed(() => {
       d: `M ${c0.topX} ${c0.topY} C ${c0.topX + 180} ${c0.topY - 155}, ${c3.topX - 140} ${
         c3.topY - 155
       }, ${c3.topX} ${c3.topY}`,
-      stroke: "#facc15",
+      stroke: isLight.value ? "#ca8a04" : "#facc15",
     },
     {
       id: "skip-bot",
       d: `M ${c6.bottomX} ${c6.bottomY} C ${c6.bottomX - 180} ${c6.bottomY + 155}, ${
         c3.bottomX + 140
       } ${c3.bottomY + 155}, ${c3.bottomX} ${c3.bottomY}`,
-      stroke: "#ec4899",
+      stroke: isLight.value ? "#db2777" : "#ec4899",
     },
   ];
 });
@@ -76,14 +97,14 @@ const skipArcs = computed(() => {
   >
     <defs>
       <radialGradient id="cursorFieldGlow" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16" />
-        <stop offset="50%" stop-color="#facc15" stop-opacity="0.05" />
-        <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+        <stop offset="0%" :stop-color="isLight ? '#171717' : '#ffffff'" :stop-opacity="isLight ? 0.08 : 0.16" />
+        <stop offset="50%" :stop-color="isLight ? '#ca8a04' : '#facc15'" :stop-opacity="isLight ? 0.07 : 0.05" />
+        <stop offset="100%" :stop-color="isLight ? '#f0f0f0' : '#000000'" stop-opacity="0" />
       </radialGradient>
     </defs>
 
     <!-- Subtle Ambient 3D SVG Perspective Horizon & Meridian Rings -->
-    <g stroke="rgba(255,255,255,0.045)" stroke-width="0.8" fill="none">
+    <g :stroke="isLight ? 'rgba(0,0,0,0.065)' : 'rgba(255,255,255,0.045)'" stroke-width="0.8" fill="none">
       <ellipse cx="500" cy="500" rx="440" ry="210" />
       <ellipse cx="500" cy="500" rx="310" ry="145" stroke-dasharray="3 7" />
       <line x1="60" y1="500" x2="940" y2="500" />
@@ -131,11 +152,11 @@ const skipArcs = computed(() => {
         :cy="pointer.y"
         r="14"
         fill="none"
-        stroke="rgba(255,255,255,0.45)"
+        :stroke="isLight ? 'rgba(0,0,0,0.4)' : 'rgba(255,255,255,0.45)'"
         stroke-width="0.9"
         stroke-dasharray="2 3"
       />
-      <circle :cx="pointer.x" :cy="pointer.y" r="2.2" fill="#facc15" />
+      <circle :cx="pointer.x" :cy="pointer.y" r="2.2" :fill="isLight ? '#ca8a04' : '#facc15'" />
 
       <g v-for="node in hovered" :key="`hover-${node.id}`">
         <path
@@ -167,7 +188,7 @@ const skipArcs = computed(() => {
         :y1="c.topY"
         :x2="c.bottomX"
         :y2="c.bottomY"
-        stroke="rgba(255,255,255,0.12)"
+        :stroke="isLight ? 'rgba(0,0,0,0.13)' : 'rgba(255,255,255,0.12)'"
         stroke-width="0.8"
         stroke-dasharray="2 4"
       />

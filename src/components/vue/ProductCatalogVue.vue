@@ -251,12 +251,12 @@ onUnmounted(() => {
   <section class="min-h-[calc(100dvh-9rem)]">
     <div class="mx-auto max-w-[1440px] px-6 sm:px-10 py-14 space-y-10">
       <!-- Minimalist Header & Filter Row -->
-      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-white/10">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-[var(--border-subtle)]">
         <div class="space-y-2">
-          <div class="text-[11px] font-mono tracking-[0.24em] uppercase text-neutral-500 tabular-nums">
+          <div class="text-[11px] font-mono tracking-[0.24em] uppercase text-[var(--text-muted)] tabular-nums">
             GITHUB.COM/LILABSAI // {{ repos.length }} REPOSITORIES
           </div>
-          <h1 class="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-white text-balance">
+          <h1 class="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-[var(--text-strong)] text-balance">
             Products &amp; Open-Source Systems
           </h1>
         </div>
@@ -271,8 +271,8 @@ onUnmounted(() => {
             :class="[
               'ui-pressable px-3 py-1.5 text-[11px] font-mono tracking-wider uppercase border cursor-pointer',
               selectedCategory === cat
-                ? 'bg-white text-black border-white font-semibold'
-                : 'bg-transparent text-neutral-400 border-white/15 hover:border-white/40 hover:text-white',
+                ? 'bg-[var(--cta-bg)] text-[var(--cta-text)] border-[var(--cta-bg)] font-semibold'
+                : 'bg-transparent text-[var(--text-secondary)] border-[var(--border-control)] hover:border-[var(--border-hover)] hover:text-[var(--text-strong)]',
             ]"
           >
             {{ cat }}
@@ -282,7 +282,7 @@ onUnmounted(() => {
             type="search"
             placeholder="Search..."
             aria-label="Search repositories"
-            class="w-48 px-3 py-1.5 bg-[#0a0a0a] border border-white/15 text-xs font-mono text-white placeholder:text-neutral-600 transition-[border-color] duration-150 ease-[var(--ease-out)] focus:outline-none focus:border-[#facc15]"
+            class="w-48 px-3 py-1.5 bg-[var(--bg-panel)] border border-[var(--border-control)] text-xs font-mono text-[var(--text-strong)] placeholder:text-[var(--text-muted)] transition-[border-color] duration-150 ease-[var(--ease-out)] focus:outline-none focus:border-[var(--accent-yellow)]"
           />
         </div>
       </div>
@@ -290,15 +290,15 @@ onUnmounted(() => {
       <!-- Empty Filter State -->
       <div
         v-if="filteredRepos.length === 0"
-        class="border border-white/10 bg-[#050505] p-12 text-center space-y-4"
+        class="border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-12 text-center space-y-4"
       >
-        <p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">
+        <p class="font-mono text-xs uppercase tracking-[0.2em] text-[var(--text-secondary)]">
           NO REPOSITORIES MATCH CURRENT FILTER
         </p>
         <button
           type="button"
           @click="resetFilters"
-          class="ui-pressable px-4 py-2 border border-white/20 text-[11px] font-mono uppercase tracking-wider text-white hover:bg-white hover:text-black cursor-pointer"
+          class="ui-pressable px-4 py-2 border border-[var(--border-strong)] text-[11px] font-mono uppercase tracking-wider text-[var(--text-strong)] hover:bg-[var(--cta-bg)] hover:text-[var(--cta-text)] cursor-pointer"
         >
           RESET FILTERS
         </button>
@@ -307,7 +307,7 @@ onUnmounted(() => {
       <!-- Repositories Minimalist Monochrome Grid -->
       <div
         v-else
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10 border border-white/10"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--bg-grid-gap)] border border-[var(--border-subtle)]"
       >
         <article
           v-for="(repo, idx) in filteredRepos"
@@ -318,44 +318,44 @@ onUnmounted(() => {
           @click="openRepoModal(repo.id)"
           @keydown.enter.prevent="openRepoModal(repo.id)"
           @keydown.space.prevent="openRepoModal(repo.id)"
-          class="group ui-card p-6 bg-[#050505] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#facc15] flex flex-col justify-between cursor-pointer"
+          class="group ui-card p-6 bg-[var(--bg-surface)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-yellow)] flex flex-col justify-between cursor-pointer"
         >
           <div class="space-y-4">
-            <div class="flex items-center justify-between text-[11px] font-mono text-neutral-500">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
               <span class="tabular-nums">{{ String(idx + 1).padStart(2, "0") }} / {{ repo.primaryLanguage }}</span>
               <span
                 class="w-2 h-2 rounded-full ui-card-dot shrink-0"
                 :style="{
                   backgroundColor:
                     idx % 3 === 0
-                      ? '#facc15'
+                      ? 'var(--accent-yellow)'
                       : idx % 3 === 1
-                        ? '#ec4899'
-                        : '#ef4444',
+                        ? 'var(--accent-pink)'
+                        : 'var(--accent-red)',
                 }"
               />
             </div>
 
             <div class="flex items-baseline justify-between gap-2">
-              <h2 class="text-xl font-bold text-white tracking-[-0.015em] group-hover:text-[#facc15] transition-colors duration-150 ease-[var(--ease-out)]">
+              <h2 class="text-xl font-bold text-[var(--text-strong)] tracking-[-0.015em] group-hover:text-[var(--accent-yellow-text)] transition-colors duration-150 ease-[var(--ease-out)]">
                 {{ repo.displayName }}
               </h2>
               <span
                 v-if="repo.latestRelease"
-                class="text-[11px] font-mono text-[#facc15] shrink-0 tabular-nums"
+                class="text-[11px] font-mono text-[var(--accent-yellow-text)] shrink-0 tabular-nums"
               >
                 {{ repo.latestRelease.tag }}
               </span>
             </div>
 
-            <p class="text-xs text-neutral-400 leading-relaxed line-clamp-2">
+            <p class="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">
               {{ repo.tagline }}
             </p>
           </div>
 
-          <div class="pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
-            <span class="text-neutral-500">{{ repo.platforms.join(" · ") }}</span>
-            <span class="text-neutral-300 group-hover:text-white transition-colors duration-150 ease-[var(--ease-out)] inline-flex items-center gap-1 shrink-0">
+          <div class="pt-6 mt-6 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono">
+            <span class="text-[var(--text-muted)]">{{ repo.platforms.join(" · ") }}</span>
+            <span class="text-[var(--text-control)] group-hover:text-[var(--text-strong)] transition-colors duration-150 ease-[var(--ease-out)] inline-flex items-center gap-1 shrink-0">
               <span>DETAILS</span>
               <span class="inline-block ui-card-arrow" aria-hidden="true">↗</span>
             </span>
@@ -368,7 +368,7 @@ onUnmounted(() => {
     <Teleport to="body">
       <div
         v-if="modalRepo"
-        class="ui-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-sm overscroll-contain"
+        class="ui-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[var(--bg-backdrop)] backdrop-blur-sm overscroll-contain"
         role="dialog"
         aria-modal="true"
         :aria-label="`${modalRepo.displayName} Details`"
@@ -377,26 +377,26 @@ onUnmounted(() => {
       >
         <div
           ref="modalPanelRef"
-          class="ui-modal-panel relative w-full max-w-2xl max-h-[85dvh] flex flex-col bg-[#080808] border border-white/20 text-white shadow-2xl overflow-hidden"
+          class="ui-modal-panel relative w-full max-w-2xl max-h-[85dvh] flex flex-col bg-[var(--bg-modal)] border border-[var(--border-strong)] text-[var(--text-strong)] shadow-2xl overflow-hidden"
         >
           <!-- Modal Header -->
-          <div class="p-6 border-b border-white/10 flex items-start justify-between gap-4 bg-[#0b0b0b]">
+          <div class="p-6 border-b border-[var(--border-subtle)] flex items-start justify-between gap-4 bg-[var(--bg-panel)]">
             <div class="space-y-1.5 pr-8">
-              <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-neutral-400">
-                <span class="text-[#facc15]">{{ modalRepo.category }}</span>
+              <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-[var(--text-secondary)]">
+                <span class="text-[var(--accent-yellow-text)] font-semibold">{{ modalRepo.category }}</span>
                 <span>·</span>
                 <span>{{ modalRepo.primaryLanguage }}</span>
                 <span>·</span>
                 <span>{{ modalRepo.license }}</span>
                 <span
                   v-if="modalRepo.latestRelease"
-                  class="px-2 py-0.5 bg-white/10 text-white shrink-0 tabular-nums"
+                  class="px-2 py-0.5 bg-[var(--bg-badge)] text-[var(--text-strong)] shrink-0 tabular-nums"
                 >
                   {{ modalRepo.latestRelease.tag }}
                 </span>
               </div>
 
-              <h2 class="text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-white text-balance">
+              <h2 class="text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-[var(--text-strong)] text-balance">
                 {{ modalRepo.displayName }}
               </h2>
             </div>
@@ -406,7 +406,7 @@ onUnmounted(() => {
               type="button"
               @click="closeRepoModal"
               aria-label="Close modal"
-              class="ui-pressable w-8 h-8 flex items-center justify-center border border-white/15 bg-[#121212] hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#facc15] text-neutral-300 font-mono text-xs cursor-pointer shrink-0"
+              class="ui-pressable w-8 h-8 flex items-center justify-center border border-[var(--border-control)] bg-[var(--bg-control)] hover:bg-[var(--cta-bg)] hover:text-[var(--cta-text)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-yellow)] text-[var(--text-control)] font-mono text-xs cursor-pointer shrink-0"
             >
               ✕
             </button>
@@ -416,37 +416,37 @@ onUnmounted(() => {
           <div class="p-6 overflow-y-auto overscroll-contain ui-scroll-body space-y-6">
             <!-- Details (A few concise sentences) -->
             <div class="space-y-2.5">
-              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-neutral-500">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Details
               </h3>
-              <p class="text-sm text-neutral-200 leading-relaxed max-w-[65ch] text-pretty">
+              <p class="text-sm text-[var(--text-body)] leading-relaxed max-w-[65ch] text-pretty">
                 {{ modalRepo.description }}
               </p>
-              <p class="text-xs text-neutral-400 leading-relaxed max-w-[65ch] text-pretty">
+              <p class="text-xs text-[var(--text-secondary)] leading-relaxed max-w-[65ch] text-pretty">
                 {{ modalRepo.architectureSummary }}
               </p>
             </div>
 
             <!-- Short Key Highlights (Top 4) -->
             <div class="space-y-2.5">
-              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-neutral-500">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Key Features
               </h3>
               <ul class="space-y-2">
                 <li
                   v-for="(item, hIdx) in modalRepo.highlights.slice(0, 4)"
                   :key="hIdx"
-                  class="flex items-start gap-2.5 text-xs text-neutral-300 leading-relaxed max-w-[65ch]"
+                  class="flex items-start gap-2.5 text-xs text-[var(--text-control)] leading-relaxed max-w-[65ch]"
                 >
                   <span
                     class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0"
                     :style="{
                       backgroundColor:
                         hIdx % 3 === 0
-                          ? '#facc15'
+                          ? 'var(--accent-yellow)'
                           : hIdx % 3 === 1
-                            ? '#ec4899'
-                            : '#ef4444',
+                            ? 'var(--accent-pink)'
+                            : 'var(--accent-red)',
                     }"
                   />
                   <span>{{ item }}</span>
@@ -455,9 +455,9 @@ onUnmounted(() => {
             </div>
 
             <!-- Compact Platform / Requirement Line -->
-            <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-neutral-400">
+            <div class="pt-3 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-[var(--text-secondary)]">
               <span>PLATFORMS: {{ modalRepo.platforms.join(" · ") }}</span>
-              <span v-if="modalRepo.requirements[0]" class="text-neutral-500">
+              <span v-if="modalRepo.requirements[0]" class="text-[var(--text-muted)]">
                 {{ modalRepo.requirements[0] }}
               </span>
             </div>
@@ -469,7 +469,7 @@ onUnmounted(() => {
                 :href="safeRepoUrl"
                 target="_blank"
                 rel="noreferrer"
-                class="ui-pressable inline-flex items-center px-4 py-2 bg-white hover:bg-[#facc15] text-black font-semibold"
+                class="ui-pressable inline-flex items-center px-4 py-2 bg-[var(--cta-bg)] hover:bg-[var(--cta-hover-bg)] text-[var(--cta-text)] hover:text-[var(--cta-hover-text)] font-semibold"
               >
                 GITHUB ↗
               </a>
@@ -478,7 +478,7 @@ onUnmounted(() => {
                 :href="safeReleaseUrl"
                 target="_blank"
                 rel="noreferrer"
-                class="ui-pressable inline-flex items-center px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-[#facc15]/50 text-[#facc15] tabular-nums"
+                class="ui-pressable inline-flex items-center px-4 py-2 bg-[var(--bg-control)] hover:bg-[var(--bg-control-hover)] border border-[var(--accent-yellow-border)] text-[var(--accent-yellow-text)] tabular-nums"
               >
                 RELEASE {{ modalRepo.latestRelease.tag }} ↗
               </a>
@@ -487,7 +487,7 @@ onUnmounted(() => {
                 :href="safeHomepageUrl"
                 target="_blank"
                 rel="noreferrer"
-                class="ui-pressable inline-flex items-center px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-white/20 text-white"
+                class="ui-pressable inline-flex items-center px-4 py-2 bg-[var(--bg-control)] hover:bg-[var(--bg-control-hover)] border border-[var(--border-strong)] text-[var(--text-strong)]"
               >
                 WEBSITE ↗
               </a>
@@ -497,10 +497,10 @@ onUnmounted(() => {
                 :class="[
                   'ui-pressable inline-flex items-center px-3.5 py-2 border cursor-pointer',
                   copiedCmdState?.id === modalRepo.id && copiedCmdState.status === 'copied'
-                    ? 'bg-[#161612] border-[#facc15]/60 text-[#facc15]'
+                    ? 'bg-[var(--bg-copied)] border-[var(--accent-yellow-border)] text-[var(--accent-yellow-text)]'
                     : copiedCmdState?.id === modalRepo.id && copiedCmdState.status === 'failed'
-                      ? 'bg-[#1a1111] border-[#ef4444]/60 text-[#ef4444]'
-                      : 'bg-[#111111] hover:bg-[#1a1a1a] border-white/15 text-neutral-300',
+                      ? 'bg-[var(--bg-copy-failed)] border-[var(--accent-red-border)] text-[var(--accent-red-text)]'
+                      : 'bg-[var(--bg-control)] hover:bg-[var(--bg-control-hover)] border-[var(--border-control)] text-[var(--text-control)]',
                 ]"
               >
                 <span
@@ -520,15 +520,15 @@ onUnmounted(() => {
           </div>
 
           <!-- Modal Footer -->
-          <div class="px-6 py-3.5 border-t border-white/10 bg-[#0b0b0b] flex items-center justify-between text-[11px] font-mono">
+          <div class="px-6 py-3.5 border-t border-[var(--border-subtle)] bg-[var(--bg-panel)] flex items-center justify-between text-[11px] font-mono">
             <button
               type="button"
               @click="stepModalRepo(-1)"
-              class="ui-pressable px-3 py-1 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 cursor-pointer"
+              class="ui-pressable px-3 py-1 border border-[var(--border-control)] text-[var(--text-control)] hover:text-[var(--text-strong)] hover:border-[var(--border-hover)] cursor-pointer"
             >
               ← PREV
             </button>
-            <span class="text-neutral-500 tabular-nums">
+            <span class="text-[var(--text-muted)] tabular-nums">
               <template v-if="modalRepoIndex >= 0">
                 {{ String(modalRepoIndex + 1).padStart(2, "0") }} /
                 {{ String(filteredRepos.length).padStart(2, "0") }} ·
@@ -538,7 +538,7 @@ onUnmounted(() => {
             <button
               type="button"
               @click="stepModalRepo(1)"
-              class="ui-pressable px-3 py-1 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 cursor-pointer"
+              class="ui-pressable px-3 py-1 border border-[var(--border-control)] text-[var(--text-control)] hover:text-[var(--text-strong)] hover:border-[var(--border-hover)] cursor-pointer"
             >
               NEXT →
             </button>
