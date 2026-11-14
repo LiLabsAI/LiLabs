@@ -44,16 +44,6 @@ const modalRepo = computed<LiLabsRepo | null>(() => {
   );
 });
 
-const modalLanguageEntries = computed(() => {
-  if (!modalRepo.value) return [];
-  const entries = Object.entries(modalRepo.value.languages);
-  const total = entries.reduce((acc, [, bytes]) => acc + bytes, 0) || 1;
-  return entries.slice(0, 6).map(([lang, bytes]) => ({
-    lang,
-    pct: Math.max(0.5, Number(((bytes / total) * 100).toFixed(1))),
-  }));
-});
-
 function openRepoModal(id: string) {
   activeModalRepoId.value = id;
   labActions.setSelectedRepo(id);
@@ -106,6 +96,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
 watch(activeModalRepoId, (val) => {
   if (typeof document !== "undefined") {
+    document.documentElement.style.overflow = val ? "hidden" : "";
     document.body.style.overflow = val ? "hidden" : "";
   }
 });
@@ -143,6 +134,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handleKeyDown);
   if (typeof document !== "undefined") {
+    document.documentElement.style.overflow = "";
     document.body.style.overflow = "";
   }
 });
@@ -187,7 +179,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Repositories Minimalist Monochrome Grid (Click any card to open Modal) -->
+      <!-- Repositories Minimalist Monochrome Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10 border border-white/10">
         <article
           v-for="(repo, idx) in filteredRepos"
@@ -238,38 +230,39 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Product Detail Modal -->
+    <!-- Concise Product Detail Modal -->
     <Teleport to="body">
       <div
         v-if="modalRepo"
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-sm overscroll-contain"
         role="dialog"
         aria-modal="true"
         :aria-label="`${modalRepo.displayName} Details`"
         @click.self="closeRepoModal"
+        @wheel.stop
       >
         <div
-          class="relative w-full max-w-4xl max-h-[90dvh] flex flex-col bg-[#070707] border border-white/20 text-white shadow-2xl overflow-hidden"
+          class="relative w-full max-w-2xl max-h-[85dvh] flex flex-col bg-[#080808] border border-white/20 text-white shadow-2xl overflow-hidden"
         >
-          <!-- Modal Top Header -->
-          <div class="p-6 sm:p-8 border-b border-white/10 flex flex-col sm:flex-row sm:items-start justify-between gap-4 bg-[#0a0a0a]">
-            <div class="space-y-2 pr-8">
-              <div class="flex flex-wrap items-center gap-2.5 text-[11px] font-mono uppercase tracking-widest text-neutral-400">
+          <!-- Modal Header -->
+          <div class="p-6 border-b border-white/10 flex items-start justify-between gap-4 bg-[#0b0b0b]">
+            <div class="space-y-1.5 pr-8">
+              <div class="flex flex-wrap items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-neutral-400">
                 <span class="text-[#facc15]">{{ modalRepo.category }}</span>
-                <span>/</span>
+                <span>·</span>
                 <span>{{ modalRepo.primaryLanguage }}</span>
-                <span>/</span>
+                <span>·</span>
                 <span>{{ modalRepo.license }}</span>
-                <span v-if="modalRepo.latestRelease" class="px-2 py-0.5 bg-white/10 text-white">
+                <span
+                  v-if="modalRepo.latestRelease"
+                  class="px-2 py-0.5 bg-white/10 text-white"
+                >
                   {{ modalRepo.latestRelease.tag }}
                 </span>
               </div>
 
-              <h2 class="text-2xl sm:text-4xl font-bold tracking-tight text-white">
+              <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">
                 {{ modalRepo.displayName }}
-                <span class="text-neutral-500 font-normal text-lg sm:text-2xl font-mono">
-                  ({{ modalRepo.name }})
-                </span>
               </h2>
             </div>
 
@@ -277,125 +270,40 @@ onUnmounted(() => {
               type="button"
               @click="closeRepoModal"
               aria-label="Close modal"
-              class="absolute top-5 right-5 w-9 h-9 flex items-center justify-center border border-white/15 bg-[#111111] hover:bg-white hover:text-black text-neutral-300 font-mono text-sm transition-colors cursor-pointer"
+              class="w-8 h-8 flex items-center justify-center border border-white/15 bg-[#121212] hover:bg-white hover:text-black text-neutral-300 font-mono text-xs transition-colors cursor-pointer shrink-0"
             >
               ✕
             </button>
           </div>
 
-          <!-- Modal Scrollable Content -->
-          <div class="p-6 sm:p-8 overflow-y-auto space-y-8">
-            <!-- Overview & Action Bar -->
-            <div class="space-y-5">
-              <p class="text-sm sm:text-base text-neutral-200 leading-relaxed">
+          <!-- Modal Body (Concise — just a few sentences + key points) -->
+          <div class="p-6 overflow-y-auto overscroll-contain space-y-6">
+            <!-- Details (A few concise sentences) -->
+            <div class="space-y-2.5">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-neutral-500">
+                Details
+              </h3>
+              <p class="text-sm text-neutral-200 leading-relaxed">
                 {{ modalRepo.description }}
               </p>
-
-              <div class="flex flex-wrap items-center gap-3 font-mono text-xs pt-1">
-                <a
-                  :href="modalRepo.url"
-                  target="_blank"
-                  rel="noreferrer"
-                  class="px-4 py-2 bg-white hover:bg-[#facc15] text-black font-semibold transition-colors"
-                >
-                  GITHUB REPOSITORY ↗
-                </a>
-                <a
-                  v-if="modalRepo.latestRelease"
-                  :href="modalRepo.latestRelease.url"
-                  target="_blank"
-                  rel="noreferrer"
-                  class="px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-[#facc15]/50 text-[#facc15] transition-colors"
-                >
-                  DOWNLOAD {{ modalRepo.latestRelease.tag }} ↗
-                </a>
-                <a
-                  v-if="modalRepo.homepage"
-                  :href="modalRepo.homepage"
-                  target="_blank"
-                  rel="noreferrer"
-                  class="px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-white/20 text-white transition-colors"
-                >
-                  WEBSITE ↗
-                </a>
-                <button
-                  type="button"
-                  @click="copyCloneCommand(modalRepo)"
-                  class="px-4 py-2 bg-[#111111] hover:bg-[#1a1a1a] border border-white/15 text-neutral-300 cursor-pointer transition-colors"
-                >
-                  {{
-                    copiedCmd === modalRepo.id
-                      ? "✓ COPIED CLONE URL"
-                      : "$ git clone LiLabsAI/" + modalRepo.name
-                  }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Details Section -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-white">
-                  Details
-                </h3>
-                <span class="text-[11px] font-mono text-neutral-500">
-                  ARCHITECTURE &amp; CAPABILITIES
-                </span>
-              </div>
-
-              <p class="text-xs font-mono text-neutral-400 bg-[#0c0c0c] border border-white/10 p-3.5 leading-relaxed">
+              <p class="text-xs text-neutral-400 leading-relaxed">
                 {{ modalRepo.architectureSummary }}
               </p>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div
-                  v-for="(detail, dIdx) in modalRepo.details"
-                  :key="dIdx"
-                  class="p-4 bg-[#0b0b0b] border border-white/10 space-y-2"
-                >
-                  <div class="text-[10px] font-mono uppercase tracking-wider">
-                    <span
-                      :style="{
-                        color:
-                          dIdx % 3 === 0
-                            ? '#facc15'
-                            : dIdx % 3 === 1
-                              ? '#ec4899'
-                              : '#ef4444',
-                      }"
-                    >
-                      {{ detail.category }}
-                    </span>
-                  </div>
-                  <h4 class="text-sm font-bold text-white">
-                    {{ detail.title }}
-                  </h4>
-                  <p class="text-xs text-neutral-400 leading-relaxed">
-                    {{ detail.description }}
-                  </p>
-                </div>
-              </div>
             </div>
 
-            <!-- Key Highlights -->
-            <div class="space-y-4">
-              <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-white">
-                  Features &amp; Highlights
-                </h3>
-                <span class="text-[11px] font-mono text-neutral-500">
-                  {{ modalRepo.highlights.length }} ITEMS
-                </span>
-              </div>
-
-              <ul class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <!-- Short Key Highlights (Top 4) -->
+            <div class="space-y-2.5">
+              <h3 class="text-[11px] font-mono uppercase tracking-[0.2em] text-neutral-500">
+                Key Features
+              </h3>
+              <ul class="space-y-2">
                 <li
-                  v-for="(item, hIdx) in modalRepo.highlights"
+                  v-for="(item, hIdx) in modalRepo.highlights.slice(0, 4)"
                   :key="hIdx"
-                  class="flex items-start gap-2.5 p-3 bg-[#0a0a0a] border border-white/10 text-xs text-neutral-300 leading-relaxed"
+                  class="flex items-start gap-2.5 text-xs text-neutral-300 leading-relaxed"
                 >
                   <span
-                    class="mt-1 w-1.5 h-1.5 rounded-full shrink-0"
+                    class="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0"
                     :style="{
                       backgroundColor:
                         hIdx % 3 === 0
@@ -410,102 +318,70 @@ onUnmounted(() => {
               </ul>
             </div>
 
-            <!-- System Requirements & Releases Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              <!-- Requirements & Languages -->
-              <div class="space-y-4">
-                <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-white border-b border-white/10 pb-2">
-                  Requirements &amp; Stack
-                </h3>
-                <ul class="space-y-2 text-xs text-neutral-300 font-mono">
-                  <li
-                    v-for="(req, rIdx) in modalRepo.requirements"
-                    :key="rIdx"
-                    class="flex items-start gap-2"
-                  >
-                    <span class="text-[#facc15]">→</span>
-                    <span>{{ req }}</span>
-                  </li>
-                </ul>
+            <!-- Compact Platform / Requirement Line -->
+            <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-neutral-400">
+              <span>PLATFORMS: {{ modalRepo.platforms.join(" · ") }}</span>
+              <span v-if="modalRepo.requirements[0]" class="text-neutral-500">
+                {{ modalRepo.requirements[0] }}
+              </span>
+            </div>
 
-                <div class="pt-2 space-y-2">
-                  <div class="text-[10px] font-mono uppercase tracking-wider text-neutral-500">
-                    LANGUAGE BREAKDOWN
-                  </div>
-                  <div class="flex flex-wrap gap-2">
-                    <span
-                      v-for="entry in modalLanguageEntries"
-                      :key="entry.lang"
-                      class="px-2.5 py-1 bg-[#111111] border border-white/10 text-[11px] font-mono text-neutral-300"
-                    >
-                      {{ entry.lang }} · {{ entry.pct }}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Verified Releases & Artifacts -->
-              <div class="space-y-4">
-                <h3 class="text-xs font-mono uppercase tracking-[0.2em] text-white border-b border-white/10 pb-2">
-                  Releases &amp; Artifacts
-                </h3>
-
-                <div v-if="modalRepo.releases.length > 0" class="space-y-3">
-                  <div
-                    v-for="rel in modalRepo.releases"
-                    :key="rel.tag"
-                    class="p-3.5 bg-[#0b0b0b] border border-white/10 space-y-2"
-                  >
-                    <div class="flex items-center justify-between gap-2">
-                      <a
-                        :href="rel.url"
-                        target="_blank"
-                        rel="noreferrer"
-                        class="text-xs font-mono font-bold text-[#facc15] hover:underline"
-                      >
-                        {{ rel.name }} ({{ rel.tag }}) ↗
-                      </a>
-                      <span class="text-[10px] font-mono text-neutral-500">
-                        {{ rel.publishedAt.slice(0, 10) }}
-                      </span>
-                    </div>
-                    <div class="flex flex-wrap gap-1.5">
-                      <span
-                        v-for="asset in rel.assets"
-                        :key="asset"
-                        class="px-2 py-0.5 bg-black border border-white/10 text-[10px] font-mono text-neutral-400"
-                      >
-                        {{ asset }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  v-else
-                  class="p-4 bg-[#0b0b0b] border border-white/10 text-xs font-mono text-neutral-500"
-                >
-                  Source-first repository — clone or browse directly on GitHub.
-                </div>
-              </div>
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2.5 font-mono text-xs pt-1">
+              <a
+                :href="modalRepo.url"
+                target="_blank"
+                rel="noreferrer"
+                class="px-4 py-2 bg-white hover:bg-[#facc15] text-black font-semibold transition-colors"
+              >
+                GITHUB ↗
+              </a>
+              <a
+                v-if="modalRepo.latestRelease"
+                :href="modalRepo.latestRelease.url"
+                target="_blank"
+                rel="noreferrer"
+                class="px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-[#facc15]/50 text-[#facc15] transition-colors"
+              >
+                RELEASE {{ modalRepo.latestRelease.tag }} ↗
+              </a>
+              <a
+                v-if="modalRepo.homepage"
+                :href="modalRepo.homepage"
+                target="_blank"
+                rel="noreferrer"
+                class="px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-white/20 text-white transition-colors"
+              >
+                WEBSITE ↗
+              </a>
+              <button
+                type="button"
+                @click="copyCloneCommand(modalRepo)"
+                class="px-3.5 py-2 bg-[#111111] hover:bg-[#1a1a1a] border border-white/15 text-neutral-300 cursor-pointer transition-colors"
+              >
+                {{
+                  copiedCmd === modalRepo.id
+                    ? "✓ COPIED"
+                    : "$ git clone LiLabsAI/" + modalRepo.name
+                }}
+              </button>
             </div>
           </div>
 
-          <!-- Modal Bottom Navigation Footer -->
-          <div class="px-6 py-4 border-t border-white/10 bg-[#0a0a0a] flex items-center justify-between text-xs font-mono">
+          <!-- Modal Footer -->
+          <div class="px-6 py-3.5 border-t border-white/10 bg-[#0b0b0b] flex items-center justify-between text-[11px] font-mono">
             <button
               type="button"
               @click="stepModalRepo(-1)"
-              class="px-3 py-1.5 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-colors cursor-pointer"
+              class="px-3 py-1 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-colors cursor-pointer"
             >
-              ← PREVIOUS
+              ← PREV
             </button>
-            <span class="text-neutral-500 hidden sm:inline">
-              ESC TO CLOSE · ←/→ TO SWITCH
-            </span>
+            <span class="text-neutral-500">ESC TO CLOSE</span>
             <button
               type="button"
               @click="stepModalRepo(1)"
-              class="px-3 py-1.5 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-colors cursor-pointer"
+              class="px-3 py-1 border border-white/15 text-neutral-300 hover:text-white hover:border-white/40 transition-colors cursor-pointer"
             >
               NEXT →
             </button>
