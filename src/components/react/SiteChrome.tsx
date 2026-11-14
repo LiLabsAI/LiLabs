@@ -29,10 +29,10 @@ export const SiteHeader: React.FC<{ activePage: "home" | "product" }> = ({ activ
       <div className="mx-auto max-w-[1680px] px-6 sm:px-10 h-16 flex items-center justify-between">
         <a
           href="/"
-          className="pointer-events-auto inline-flex items-center gap-2.5 group focus:outline-none"
+          className="pointer-events-auto ui-pressable inline-flex items-center gap-2.5 group focus:outline-none"
           aria-label="LI Labs Home"
         >
-          <LiMarkSvg className="w-6 h-6 transition-transform duration-300 group-hover:scale-105" />
+          <LiMarkSvg className="w-6 h-6 shrink-0 ui-brand-mark" />
           <span className="font-mono text-xs font-semibold tracking-[0.26em] text-white uppercase">
             LI LABS
           </span>
@@ -41,7 +41,7 @@ export const SiteHeader: React.FC<{ activePage: "home" | "product" }> = ({ activ
         <nav className="pointer-events-auto flex items-center gap-6 font-mono text-[11px] tracking-[0.2em] uppercase">
           <a
             href="/"
-            className={`transition-colors ${
+            className={`ui-pressable inline-block ${
               activePage === "home"
                 ? "text-white"
                 : "text-neutral-500 hover:text-white"
@@ -51,20 +51,20 @@ export const SiteHeader: React.FC<{ activePage: "home" | "product" }> = ({ activ
           </a>
           <a
             href="/product/"
-            className={`transition-colors flex items-center gap-1.5 ${
+            className={`ui-pressable inline-flex items-center gap-1.5 ${
               activePage === "product"
                 ? "text-white"
                 : "text-neutral-400 hover:text-white"
             }`}
           >
             <span>PRODUCT</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#facc15]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#facc15] shrink-0" />
           </a>
           <a
             href="https://github.com/LiLabsAI"
             target="_blank"
             rel="noreferrer"
-            className="text-neutral-400 hover:text-white transition-colors"
+            className="ui-pressable inline-block text-neutral-400 hover:text-white"
           >
             GITHUB ↗
           </a>
@@ -93,7 +93,7 @@ export const SiteFooter: React.FC<{ activePage?: "home" | "product" }> = ({
                 href="https://aliahad.com"
                 target="_blank"
                 rel="noreferrer"
-                className="text-neutral-300 hover:text-white transition-colors"
+                className="ui-pressable inline-block text-neutral-300 hover:text-white"
               >
                 ALI AHAD
               </a>
@@ -104,38 +104,38 @@ export const SiteFooter: React.FC<{ activePage?: "home" | "product" }> = ({
             <button
               type="button"
               onClick={() => labActions.setPulseMode("neural")}
-              className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
+              className={`ui-pressable flex items-center gap-1.5 cursor-pointer ${
                 lab.pulseMode === "neural" ? "text-white" : "text-neutral-500 hover:text-neutral-300"
               }`}
               title="Neural Network Mode"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-white" />
+              <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
               <span className="hidden md:inline">NEURAL</span>
             </button>
             <button
               type="button"
               onClick={() => labActions.setPulseMode("finetune")}
-              className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
+              className={`ui-pressable flex items-center gap-1.5 cursor-pointer ${
                 lab.pulseMode === "finetune"
                   ? "text-[#facc15]"
                   : "text-neutral-500 hover:text-neutral-300"
               }`}
               title="Fine-Tune Wave Mode"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#facc15]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#facc15] shrink-0" />
               <span className="hidden md:inline">FINE-TUNE</span>
             </button>
             <button
               type="button"
               onClick={() => labActions.setPulseMode("synapse")}
-              className={`flex items-center gap-1.5 cursor-pointer transition-colors ${
+              className={`ui-pressable flex items-center gap-1.5 cursor-pointer ${
                 lab.pulseMode === "synapse"
                   ? "text-[#ec4899]"
                   : "text-neutral-500 hover:text-neutral-300"
               }`}
               title="Synapse Backprop Mode"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ef4444]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#ef4444] shrink-0" />
               <span className="hidden md:inline">BACKPROP</span>
             </button>
           </div>
@@ -153,23 +153,23 @@ export const SiteFooter: React.FC<{ activePage?: "home" | "product" }> = ({
             href="https://aliahad.com"
             target="_blank"
             rel="noreferrer"
-            className="text-neutral-300 hover:text-white"
+            className="ui-pressable inline-block text-neutral-300 hover:text-white"
           >
             ALI AHAD
           </a>
         </div>
-        <div className="flex items-center gap-6">
-          <a href="/" className="hover:text-white transition-colors">
+        <div className="flex items-center gap-6 tabular-nums">
+          <a href="/" className="ui-pressable inline-block hover:text-white">
             INDEX
           </a>
-          <a href="/product/" className="hover:text-white transition-colors">
+          <a href="/product/" className="ui-pressable inline-block hover:text-white">
             PRODUCT ({LILABS_REPOS.length})
           </a>
           <a
             href="https://github.com/LiLabsAI"
             target="_blank"
             rel="noreferrer"
-            className="hover:text-white transition-colors"
+            className="ui-pressable inline-block hover:text-white"
           >
             GITHUB ↗
           </a>

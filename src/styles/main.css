@@ -13,6 +13,9 @@
     --accent-pink: #ec4899;
     --font-sans: "Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   html,
@@ -50,6 +53,28 @@
   }
 }
 
+@keyframes stateSwapIn {
+  from {
+    opacity: 0.45;
+    filter: blur(2px);
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes stateSwapReduced {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .svg-flow-forward {
   stroke-dasharray: 6 14;
   animation: pulseDash 2.4s linear infinite;
@@ -60,9 +85,116 @@
   animation: reverseDash 1.8s linear infinite;
 }
 
+.ui-pressable {
+  transition:
+    transform 140ms var(--ease-out),
+    color 150ms var(--ease-out),
+    background-color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out);
+}
+
+.ui-pressable:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.ui-card {
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 180ms var(--ease-out);
+}
+
+.ui-card:active {
+  transform: scale(0.992);
+}
+
+.ui-card-dot,
+.ui-card-arrow,
+.ui-brand-mark {
+  transition:
+    transform 180ms var(--ease-out),
+    color 150ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-card:hover {
+    background-color: #0d0d0d;
+  }
+
+  .ui-card:hover .ui-card-dot {
+    transform: scale(1.25);
+  }
+
+  .ui-card:hover .ui-card-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .group:hover .ui-brand-mark {
+    transform: scale(1.06);
+  }
+}
+
+.ui-modal-backdrop {
+  opacity: 1;
+  transition: opacity 180ms var(--ease-out);
+}
+
+.ui-modal-panel {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transform-origin: center;
+  transition:
+    opacity 210ms var(--ease-out),
+    transform 210ms var(--ease-out);
+}
+
+@starting-style {
+  .ui-modal-backdrop {
+    opacity: 0;
+  }
+
+  .ui-modal-panel {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+}
+
+.ui-state-swap {
+  display: inline-block;
+  animation: stateSwapIn 160ms var(--ease-out);
+}
+
+.ui-scroll-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .svg-flow-forward,
   .svg-flow-backward {
     animation: none;
+  }
+
+  .ui-pressable:active:not(:disabled),
+  .ui-card:active,
+  .ui-card:hover .ui-card-dot,
+  .ui-card:hover .ui-card-arrow,
+  .group:hover .ui-brand-mark {
+    transform: none;
+  }
+
+  .ui-modal-backdrop,
+  .ui-modal-panel {
+    transition-duration: 150ms;
+  }
+
+  @starting-style {
+    .ui-modal-panel {
+      opacity: 0;
+      transform: none;
+    }
+  }
+
+  .ui-state-swap {
+    animation: stateSwapReduced 120ms ease-out;
   }
 }

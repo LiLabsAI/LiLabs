@@ -100,7 +100,31 @@ describe("ProductCatalogVue", () => {
     await flushPromises();
     expect(dialog?.querySelector("h2")?.textContent).toBe(initialTitle);
 
+    // Unmodified ArrowRight advances position indicator cleanly
+    const totalLabel = String(LILABS_REPOS.length).padStart(2, "0");
+    expect(dialog?.textContent).toContain(`01 / ${totalLabel}`);
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    await flushPromises();
+    expect(dialog?.textContent).toContain(`02 / ${totalLabel}`);
+
     wrapper.unmount();
     expect(document.body.style.overflow).toBe("");
+  });
+
+  it("renders empty filter state and restores catalog on RESET FILTERS click", async () => {
+    const wrapper = mount(ProductCatalogVue, { attachTo: document.body });
+    await flushPromises();
+
+    const search = wrapper.find('input[type="search"]');
+    await search.setValue("definitely-nonexistent-query-xyz");
+    expect(wrapper.findAll("article")).toHaveLength(0);
+    expect(wrapper.text()).toContain("NO REPOSITORIES MATCH CURRENT FILTER");
+
+    const resetBtn = wrapper.findAll("button").find((b) => b.text().includes("RESET FILTERS"));
+    expect(resetBtn).toBeDefined();
+    await resetBtn?.trigger("click");
+    expect(wrapper.findAll("article")).toHaveLength(LILABS_REPOS.length);
+
+    wrapper.unmount();
   });
 });
