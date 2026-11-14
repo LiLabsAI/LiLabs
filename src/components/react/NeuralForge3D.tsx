@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   labActions,
@@ -129,9 +130,27 @@ function createMinimalLiWireCore(): THREE.Group {
   return group;
 }
 
+function disposeObjectResources(root: THREE.Object3D): void {
+  root.traverse((obj) => {
+    const candidate = obj as {
+      geometry?: THREE.BufferGeometry;
+      material?: THREE.Material | THREE.Material[];
+    };
+    candidate.geometry?.dispose();
+    if (Array.isArray(candidate.material)) {
+      for (const mat of candidate.material) {
+        mat.dispose();
+      }
+    } else {
+      candidate.material?.dispose();
+    }
+  });
+}
+
 export const NeuralForge3D: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [webglFallback, setWebglFallback] = useState(false);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -140,12 +159,18 @@ export const NeuralForge3D: React.FC = () => {
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha: false,
-      powerPreference: "high-performance",
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: true,
+        alpha: false,
+        powerPreference: "high-performance",
+      });
+    } catch {
+      setWebglFallback(true);
+      return;
+    }
     renderer.setClearColor(0x040404, 1);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
@@ -335,6 +360,12 @@ export const NeuralForge3D: React.FC = () => {
     const pulseMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const pulseInstanced = new THREE.InstancedMesh(pulseGeom, pulseMat, pulseCount);
     pulseInstanced.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    for (let p = 0; p < pulseCount; p++) {
+      pulseInstanced.setColorAt(p, PALETTE[pulses[p].colorType]);
+    }
+    if (pulseInstanced.instanceColor) {
+      pulseInstanced.instanceColor.needsUpdate = true;
+    }
     rootGroup.add(pulseInstanced);
 
     // Ambient Deep-Space Dust Field (minimalist monochrome depth cues)
@@ -356,6 +387,16 @@ export const NeuralForge3D: React.FC = () => {
     const dustPoints = new THREE.Points(dustGeom, dustMat);
     outerHaloGroup.add(dustPoints);
 
+    let isDisposed = false;
+    let isDocumentHidden = typeof document !== "undefined" ? document.hidden : false;
+    let contextLost = false;
+    let needsWakeUntil = performance.now() + 400;
+    let rafId = 0;
+
+    const wakeRender = (durationMs = 450) => {
+      needsWakeUntil = Math.max(needsWakeUntil, performance.now() + durationMs);
+    };
+
     // Cached Viewport Size & Responsive Framing across ANY Monitor Size
     const viewport = { width: window.innerWidth, height: window.innerHeight };
 
@@ -373,13 +414,11 @@ export const NeuralForge3D: React.FC = () => {
       const baseZ = aspect < 0.75 ? 22.5 : aspect < 1.2 ? 16.8 : aspect > 2.2 ? 11.4 : 13.0;
       camera.userData.baseZ = baseZ;
       camera.updateProjectionMatrix();
+      wakeRender(250);
     };
     updateSize();
 
-    const resizeObserver = new ResizeObserver(updateSize);
-    resizeObserver.observe(container);
-
-    // Smooth Mouse-Driven Orbit + Drag Rotation + Magnetic Raycast Excitation
+    // Smooth Mouse-Driven Orbit + Drag Rotation + Touch Pinch + Keyboard Navigation
     const pointer = {
       targetX: 0,
       targetY: 0,
@@ -395,61 +434,21 @@ export const NeuralForge3D: React.FC = () => {
       worldCursor: new THREE.Vector3(0, 0, 0),
     };
 
+    const activePointers = new Map<number, { x: number; y: number }>();
+    let lastPinchDist: number | null = null;
+
     const raycaster = new THREE.Raycaster();
     const ndcVec = new THREE.Vector2();
     const intersectPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
 
-    const onPointerMove = (e: PointerEvent) => {
-      pointer.targetX = (e.clientX / viewport.width) * 2 - 1;
-      pointer.targetY = (e.clientY / viewport.height) * 2 - 1;
-      pointer.active = true;
+    const clampPitch = (pitch: number) => Math.max(-0.65, Math.min(0.65, pitch));
+    const clampZoom = (zoom: number) => Math.max(-4.5, Math.min(5.0, zoom));
 
-      if (pointer.isDragging) {
-        const dx = e.clientX - pointer.lastClientX;
-        const dy = e.clientY - pointer.lastClientY;
-        pointer.lastClientX = e.clientX;
-        pointer.lastClientY = e.clientY;
-        pointer.dragYaw += dx * 0.0055;
-        pointer.dragPitch = Math.max(
-          -0.65,
-          Math.min(0.65, pointer.dragPitch + dy * 0.0045)
-        );
-      }
-    };
-
-    const onPointerDown = (e: PointerEvent) => {
-      pointer.isDragging = true;
-      pointer.lastClientX = e.clientX;
-      pointer.lastClientY = e.clientY;
-      pointer.active = true;
-      // Trigger a live fine-tuning backprop wave on click
-      labActions.triggerFineTuneWave();
-    };
-
-    const onPointerUp = () => {
+    const resetDragState = () => {
       pointer.isDragging = false;
+      activePointers.clear();
+      lastPinchDist = null;
     };
-
-    const onPointerLeave = () => {
-      pointer.active = false;
-      pointer.targetX = 0;
-      pointer.targetY = 0;
-      pointer.isDragging = false;
-    };
-
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      pointer.zoomOffset = Math.max(
-        -4.5,
-        Math.min(5.0, pointer.zoomOffset + e.deltaY * 0.0045)
-      );
-    };
-
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    canvas.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointerup", onPointerUp);
-    document.addEventListener("pointerleave", onPointerLeave);
-    canvas.addEventListener("wheel", onWheel, { passive: false });
 
     const dummy = new THREE.Object3D();
     const tempColor = new THREE.Color();
@@ -457,12 +456,37 @@ export const NeuralForge3D: React.FC = () => {
     const projTopVec = new THREE.Vector3();
     const projBotVec = new THREE.Vector3();
 
+    const clusterCache: ProjectedCluster[] = layerX.map((_, idx) => ({
+      index: idx,
+      x: 500,
+      y: 500,
+      topX: 500,
+      topY: 400,
+      bottomX: 500,
+      bottomY: 600,
+      scale: 1,
+      energy: 0.25,
+      accentHex: idx === 2 ? "#facc15" : idx === 3 ? "#ec4899" : idx === 4 ? "#ef4444" : "#ffffff",
+    }));
+    const prevProjX = new Float64Array(layerX.length);
+    const prevProjY = new Float64Array(layerX.length);
+    let prevPointerActive = false;
+    let prevPointerX = -1;
+    let prevPointerY = -1;
+    let prevHoveredCount = -1;
+
     let lastTime = performance.now();
-    let rafId = 0;
     let frameCount = 0;
 
-    const animate = (now: number) => {
+    const scheduleFrame = () => {
+      if (isDisposed || isDocumentHidden || contextLost || rafId !== 0) return;
+      if (reducedMotion && performance.now() > needsWakeUntil) return;
       rafId = requestAnimationFrame(animate);
+    };
+
+    const animate = (now: number) => {
+      rafId = 0;
+      if (isDisposed || isDocumentHidden || contextLost) return;
 
       const rawDt = (now - lastTime) * 0.001;
       const dt = Math.min(1 / 30, Math.max(0.001, rawDt));
@@ -470,7 +494,7 @@ export const NeuralForge3D: React.FC = () => {
       const t = now * 0.001;
 
       // Frame-rate-independent pointer damping (add-mouse-driven-orbit skill)
-      const alpha = 1 - Math.pow(1 - 0.055, dt * 60);
+      const alpha = 1 - (1 - 0.055) ** (dt * 60);
       pointer.smoothX += (pointer.targetX - pointer.smoothX) * alpha;
       pointer.smoothY += (pointer.targetY - pointer.smoothY) * alpha;
 
@@ -504,8 +528,11 @@ export const NeuralForge3D: React.FC = () => {
 
       // Fine-Tuning Wavefront from user click or periodic autonomous pulse
       const waveAgeSec = (now - vueLabState.pulseWaveTime) * 0.001;
-      const activeWaveX =
-        waveAgeSec < 3.2
+      const activeWaveX = reducedMotion
+        ? waveAgeSec < 1.8
+          ? -7.0 + (waveAgeSec / 1.8) * 14.0
+          : -999
+        : waveAgeSec < 3.2
           ? -7.0 + (waveAgeSec / 3.2) * 14.0
           : -7.0 + ((t * 0.55) % 1) * 14.0;
 
@@ -515,7 +542,6 @@ export const NeuralForge3D: React.FC = () => {
       for (let i = 0; i < neurons.length; i++) {
         const n = neurons[i];
 
-        // Organic breathing offset
         const breatheX = reducedMotion ? 0 : Math.sin(t * 1.3 + n.phase) * 0.045;
         const breatheY = reducedMotion ? 0 : Math.cos(t * 1.1 + n.phase) * 0.055;
         const breatheZ = reducedMotion ? 0 : Math.sin(t * 0.9 + n.phase * 1.3) * 0.045;
@@ -537,7 +563,7 @@ export const NeuralForge3D: React.FC = () => {
             tx += dx * pull;
             ty += dy * pull;
             tz += dz * pull;
-            cursorBoost = Math.pow(1 - dist / 2.5, 1.5);
+            cursorBoost = (1 - dist / 2.5) ** 1.5;
           }
         }
 
@@ -547,7 +573,7 @@ export const NeuralForge3D: React.FC = () => {
 
         // Wavefront excitation
         const waveDist = Math.abs(n.pos.x - activeWaveX);
-        const waveBoost = waveDist < 1.6 ? Math.pow(1 - waveDist / 1.6, 2) : 0;
+        const waveBoost = waveDist < 1.6 ? (1 - waveDist / 1.6) ** 2 : 0;
 
         n.energy = Math.min(1, 0.15 + cursorBoost * 0.95 + waveBoost * 0.85);
 
@@ -558,9 +584,8 @@ export const NeuralForge3D: React.FC = () => {
         dummy.updateMatrix();
         neuronInstanced.setMatrixAt(i, dummy.matrix);
 
-        // Minimalist Black & White with selective Yellow / Red / Pink excitations
         if (cursorBoost > 0.32) {
-          const cIdx = (i % 3) + 1; // 1=Yellow, 2=Red, 3=Pink
+          const cIdx = (i % 3) + 1;
           tempColor.copy(PALETTE[cIdx]);
         } else if (waveBoost > 0.35) {
           const cIdx =
@@ -639,7 +664,7 @@ export const NeuralForge3D: React.FC = () => {
       posAttr.needsUpdate = true;
       colAttr.needsUpdate = true;
 
-      // Update 140 Traveling Signal Photons along Synapses
+      // Update 140 Traveling Signal Photons along Synapses (static colors initialized once at setup)
       for (let p = 0; p < pulseCount; p++) {
         const pulse = pulses[p];
         if (!reducedMotion) {
@@ -662,10 +687,8 @@ export const NeuralForge3D: React.FC = () => {
         dummy.scale.setScalar(s);
         dummy.updateMatrix();
         pulseInstanced.setMatrixAt(p, dummy.matrix);
-        pulseInstanced.setColorAt(p, PALETTE[pulse.colorType]);
       }
       pulseInstanced.instanceMatrix.needsUpdate = true;
-      if (pulseInstanced.instanceColor) pulseInstanced.instanceColor.needsUpdate = true;
 
       renderer.render(scene, camera);
 
@@ -675,13 +698,15 @@ export const NeuralForge3D: React.FC = () => {
         const toSvgX = (nx: number) => Number(((nx * 0.5 + 0.5) * 1000).toFixed(1));
         const toSvgY = (ny: number) => Number(((-ny * 0.5 + 0.5) * 1000).toFixed(1));
 
-        const pSvg = {
-          x: Number(((pointer.targetX * 0.5 + 0.5) * 1000).toFixed(1)),
-          y: Number(((pointer.targetY * 0.5 + 0.5) * 1000).toFixed(1)),
-          active: pointer.active,
-        };
+        const pSvgX = Number(((pointer.targetX * 0.5 + 0.5) * 1000).toFixed(1));
+        const pSvgY = Number(((pointer.targetY * 0.5 + 0.5) * 1000).toFixed(1));
+        let projDirty =
+          pointer.active !== prevPointerActive ||
+          Math.abs(pSvgX - prevPointerX) >= 0.25 ||
+          Math.abs(pSvgY - prevPointerY) >= 0.25;
 
-        const projectedClusters: ProjectedCluster[] = layerX.map((lx, idx) => {
+        for (let idx = 0; idx < layerX.length; idx++) {
+          const lx = layerX[idx];
           projVec.set(lx, 0, 0);
           rootGroup.localToWorld(projVec);
           projVec.project(camera);
@@ -697,28 +722,27 @@ export const NeuralForge3D: React.FC = () => {
           const waveDist = Math.abs(lx - activeWaveX);
           const energy = waveDist < 2.0 ? Math.max(0.2, 1 - waveDist / 2.0) : 0.25;
 
-          const accentHex =
-            idx === 2
-              ? "#facc15"
-              : idx === 3
-                ? "#ec4899"
-                : idx === 4
-                  ? "#ef4444"
-                  : "#ffffff";
+          const x = toSvgX(projVec.x);
+          const y = toSvgY(projVec.y);
+          if (
+            Math.abs(x - prevProjX[idx]) >= 0.25 ||
+            Math.abs(y - prevProjY[idx]) >= 0.25 ||
+            Math.abs(energy - clusterCache[idx].energy) >= 0.03
+          ) {
+            projDirty = true;
+          }
+          prevProjX[idx] = x;
+          prevProjY[idx] = y;
 
-          return {
-            index: idx,
-            x: toSvgX(projVec.x),
-            y: toSvgY(projVec.y),
-            topX: toSvgX(projTopVec.x),
-            topY: toSvgY(projTopVec.y),
-            bottomX: toSvgX(projBotVec.x),
-            bottomY: toSvgY(projBotVec.y),
-            scale: 1,
-            energy,
-            accentHex,
-          };
-        });
+          const slot = clusterCache[idx];
+          slot.x = x;
+          slot.y = y;
+          slot.topX = toSvgX(projTopVec.x);
+          slot.topY = toSvgY(projTopVec.y);
+          slot.bottomX = toSvgX(projBotVec.x);
+          slot.bottomY = toSvgY(projBotVec.y);
+          slot.energy = energy;
+        }
 
         const hoveredNeurons: HoveredNeuron[] = [];
         if (pointer.active) {
@@ -731,9 +755,7 @@ export const NeuralForge3D: React.FC = () => {
 
             const sx = toSvgX(projVec.x);
             const sy = toSvgY(projVec.y);
-            const dx = sx - pSvg.x;
-            const dy = sy - pSvg.y;
-            const dist = Math.hypot(dx, dy);
+            const dist = Math.hypot(sx - pSvgX, sy - pSvgY);
             if (dist < 145) {
               hoveredNeurons.push({
                 id: n.id,
@@ -747,27 +769,221 @@ export const NeuralForge3D: React.FC = () => {
           hoveredNeurons.sort((a, b) => a.dist - b.dist);
         }
 
-        labActions.updateProjectionFrame(
-          pSvg,
-          projectedClusters,
-          hoveredNeurons.slice(0, 8)
-        );
+        const clippedHoverCount = Math.min(8, hoveredNeurons.length);
+        if (projDirty || pointer.active || clippedHoverCount !== prevHoveredCount) {
+          prevPointerActive = pointer.active;
+          prevPointerX = pSvgX;
+          prevPointerY = pSvgY;
+          prevHoveredCount = clippedHoverCount;
+          labActions.updateProjectionFrame(
+            { x: pSvgX, y: pSvgY, active: pointer.active },
+            clusterCache.map((c) => ({ ...c })),
+            hoveredNeurons.slice(0, 8)
+          );
+        }
+      }
+
+      if (!reducedMotion || now < needsWakeUntil) {
+        scheduleFrame();
       }
     };
 
-    rafId = requestAnimationFrame(animate);
+    const onPointerMove = (e: PointerEvent) => {
+      pointer.targetX = (e.clientX / viewport.width) * 2 - 1;
+      pointer.targetY = (e.clientY / viewport.height) * 2 - 1;
+      pointer.active = true;
+
+      if (activePointers.has(e.pointerId)) {
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+
+      if (activePointers.size === 2) {
+        const pts = Array.from(activePointers.values());
+        const dist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (lastPinchDist !== null) {
+          pointer.zoomOffset = clampZoom(pointer.zoomOffset + (lastPinchDist - dist) * 0.02);
+        }
+        lastPinchDist = dist;
+        pointer.isDragging = false;
+      } else if (pointer.isDragging) {
+        const dx = e.clientX - pointer.lastClientX;
+        const dy = e.clientY - pointer.lastClientY;
+        pointer.lastClientX = e.clientX;
+        pointer.lastClientY = e.clientY;
+        pointer.dragYaw += dx * 0.0055;
+        pointer.dragPitch = clampPitch(pointer.dragPitch + dy * 0.0045);
+      }
+
+      if (reducedMotion) {
+        wakeRender(250);
+        scheduleFrame();
+      }
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      try {
+        canvas.setPointerCapture?.(e.pointerId);
+      } catch {
+        // Synthetic or unsupported pointer capture
+      }
+
+      if (activePointers.size === 1) {
+        pointer.isDragging = true;
+        pointer.lastClientX = e.clientX;
+        pointer.lastClientY = e.clientY;
+        pointer.active = true;
+        labActions.triggerFineTuneWave();
+        wakeRender(1800);
+      } else {
+        pointer.isDragging = false;
+        lastPinchDist = null;
+        wakeRender(300);
+      }
+      scheduleFrame();
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      activePointers.delete(e.pointerId);
+      lastPinchDist = null;
+      if (activePointers.size === 0) {
+        pointer.isDragging = false;
+      }
+      try {
+        if (canvas.hasPointerCapture?.(e.pointerId)) {
+          canvas.releasePointerCapture(e.pointerId);
+        }
+      } catch {
+        // Ignore capture release errors
+      }
+    };
+
+    const onPointerLeave = () => {
+      pointer.active = false;
+      pointer.targetX = 0;
+      pointer.targetY = 0;
+      resetDragState();
+      if (reducedMotion) {
+        wakeRender(250);
+        scheduleFrame();
+      }
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      pointer.zoomOffset = clampZoom(pointer.zoomOffset + e.deltaY * 0.0045);
+      wakeRender(300);
+      scheduleFrame();
+    };
+
+    const onCanvasKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      let handled = true;
+      if (e.key === "ArrowLeft") {
+        pointer.dragYaw -= 0.14;
+      } else if (e.key === "ArrowRight") {
+        pointer.dragYaw += 0.14;
+      } else if (e.key === "ArrowUp") {
+        pointer.dragPitch = clampPitch(pointer.dragPitch - 0.1);
+      } else if (e.key === "ArrowDown") {
+        pointer.dragPitch = clampPitch(pointer.dragPitch + 0.1);
+      } else if (e.key === "+" || e.key === "=") {
+        pointer.zoomOffset = clampZoom(pointer.zoomOffset - 0.45);
+      } else if (e.key === "-" || e.key === "_") {
+        pointer.zoomOffset = clampZoom(pointer.zoomOffset + 0.45);
+      } else if (e.key === " " || e.key === "Enter") {
+        labActions.triggerFineTuneWave();
+        wakeRender(1800);
+      } else {
+        handled = false;
+      }
+
+      if (handled) {
+        e.preventDefault();
+        wakeRender(350);
+        scheduleFrame();
+      }
+    };
+
+    const onVisibilityChange = () => {
+      isDocumentHidden = document.hidden;
+      if (isDocumentHidden) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else {
+        lastTime = performance.now();
+        wakeRender(300);
+        scheduleFrame();
+      }
+    };
+
+    const onWindowBlur = () => {
+      resetDragState();
+    };
+
+    const onContextLost = (e: Event) => {
+      e.preventDefault();
+      contextLost = true;
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    };
+
+    const onContextRestored = () => {
+      contextLost = false;
+      lastTime = performance.now();
+      wakeRender(400);
+      scheduleFrame();
+    };
+
+    const resizeObserver = new ResizeObserver(updateSize);
+    resizeObserver.observe(container);
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    canvas.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+    window.addEventListener("blur", onWindowBlur);
+    document.addEventListener("pointerleave", onPointerLeave);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    canvas.addEventListener("wheel", onWheel, { passive: false });
+    canvas.addEventListener("keydown", onCanvasKeyDown);
+    canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
+
+    scheduleFrame();
 
     return () => {
+      isDisposed = true;
       cancelAnimationFrame(rafId);
       resizeObserver.disconnect();
       window.removeEventListener("pointermove", onPointerMove);
       canvas.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
+      window.removeEventListener("blur", onWindowBlur);
       document.removeEventListener("pointerleave", onPointerLeave);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("keydown", onCanvasKeyDown);
+      canvas.removeEventListener("webglcontextlost", onContextLost);
+      canvas.removeEventListener("webglcontextrestored", onContextRestored);
+      disposeObjectResources(scene);
       renderer.dispose();
     };
   }, []);
+
+  if (webglFallback) {
+    return (
+      <div
+        data-webgl="fallback"
+        className="fixed inset-0 w-screen h-dvh overflow-hidden bg-[#040404] select-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 50% 48%, rgba(250, 204, 21, 0.08), rgba(236, 72, 153, 0.04) 28%, #040404 68%)",
+        }}
+      />
+    );
+  }
 
   return (
     <div
@@ -776,7 +992,10 @@ export const NeuralForge3D: React.FC = () => {
     >
       <canvas
         ref={canvasRef}
-        className="w-full h-full block cursor-crosshair active:cursor-grabbing"
+        tabIndex={0}
+        aria-label="Interactive 3D neural network showcase. Drag or use arrow keys to orbit, scroll to zoom, click or press Space to pulse."
+        style={{ touchAction: "none" }}
+        className="w-full h-full block cursor-crosshair active:cursor-grabbing touch-none focus:outline-none focus-visible:ring-1 focus-visible:ring-[#facc15]/60"
       />
     </div>
   );

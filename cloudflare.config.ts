@@ -26,8 +26,8 @@ export default defineConfig({
       },
     },
     assets: {
-      notFoundHandling: "single-page-application",
-      runWorkerFirst: ["/api/*", "/healthz"],
+      notFoundHandling: "404-page",
+      runWorkerFirst: ["/api/*", "/healthz", "/products", "/products/"],
     },
     env: {
       ASSETS: bindings.assets(),

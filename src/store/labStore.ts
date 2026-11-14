@@ -1,4 +1,4 @@
-import { reactive } from "vue";
+import { markRaw, reactive } from "vue";
 import { useSyncExternalStore } from "react";
 
 export interface ProjectedCluster {
@@ -103,8 +103,8 @@ export const labActions = {
     vueLabState.pointerSvg.x = pointerSvg.x;
     vueLabState.pointerSvg.y = pointerSvg.y;
     vueLabState.pointerSvg.active = pointerSvg.active;
-    vueLabState.projectedClusters = clusters;
-    vueLabState.hoveredNeurons = hovered;
+    vueLabState.projectedClusters = markRaw(clusters);
+    vueLabState.hoveredNeurons = markRaw(hovered);
   },
 
   setSelectedRepo(slug: string) {

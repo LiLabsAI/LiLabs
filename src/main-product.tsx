@@ -2,6 +2,9 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 
 import "./styles/main.css";
+import { enableNonBlockingFonts } from "./utils/fonts";
+
+enableNonBlockingFonts();
 import { SiteFooter, SiteHeader } from "./components/react/SiteChrome";
 import { VueBridge } from "./components/react/VueBridge";
 import ProductCatalogVue from "./components/vue/ProductCatalogVue.vue";

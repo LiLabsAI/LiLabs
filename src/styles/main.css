@@ -63,6 +63,6 @@
 @media (prefers-reduced-motion: reduce) {
   .svg-flow-forward,
   .svg-flow-backward {
-    animation: none !important;
+    animation: none;
   }
 }

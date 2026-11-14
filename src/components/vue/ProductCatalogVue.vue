@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { LILABS_REPOS, type LiLabsRepo } from "../../data/repos";
 import { labActions } from "../../store/labStore";
+import { sanitizeHttpUrl } from "../../utils/url";
 
 const repos = ref<LiLabsRepo[]>([...LILABS_REPOS]);
 const selectedCategory = ref<string>("ALL");
 const searchQuery = ref<string>("");
 const activeModalRepoId = ref<string | null>(null);
-const copiedCmd = ref<string | null>(null);
+const copiedCmdState = ref<{ id: string; status: "copied" | "failed" } | null>(null);
+
+const modalPanelRef = ref<HTMLElement | null>(null);
+const closeBtnRef = ref<HTMLButtonElement | null>(null);
+
+let lastFocusedElement: HTMLElement | null = null;
+let fetchAbortController: AbortController | null = null;
+let copyResetTimer: ReturnType<typeof setTimeout> | null = null;
 
 const categories = [
   "ALL",
@@ -44,7 +52,17 @@ const modalRepo = computed<LiLabsRepo | null>(() => {
   );
 });
 
+const safeRepoUrl = computed(() => sanitizeHttpUrl(modalRepo.value?.url));
+const safeReleaseUrl = computed(() =>
+  sanitizeHttpUrl(modalRepo.value?.latestRelease?.url)
+);
+const safeHomepageUrl = computed(() => sanitizeHttpUrl(modalRepo.value?.homepage));
+
 function openRepoModal(id: string) {
+  if (!activeModalRepoId.value && typeof document !== "undefined") {
+    lastFocusedElement =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  }
   activeModalRepoId.value = id;
   labActions.setSelectedRepo(id);
   const url = new URL(window.location.href);
@@ -71,33 +89,101 @@ function stepModalRepo(delta: number) {
 }
 
 async function copyCloneCommand(repo: LiLabsRepo) {
-  const cmd = `git clone ${repo.url}.git`;
+  const safeUrl = sanitizeHttpUrl(repo.url);
+  if (!safeUrl) {
+    copiedCmdState.value = { id: repo.id, status: "failed" };
+    return;
+  }
+  const cmd = `git clone ${safeUrl}.git`;
+  if (copyResetTimer !== null) {
+    clearTimeout(copyResetTimer);
+  }
   try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error("Clipboard unavailable");
+    }
     await navigator.clipboard.writeText(cmd);
-    copiedCmd.value = repo.id;
-    setTimeout(() => {
-      if (copiedCmd.value === repo.id) copiedCmd.value = null;
-    }, 2000);
+    copiedCmdState.value = { id: repo.id, status: "copied" };
   } catch {
-    // Fallback
+    copiedCmdState.value = { id: repo.id, status: "failed" };
+  }
+  copyResetTimer = setTimeout(() => {
+    if (copiedCmdState.value?.id === repo.id) {
+      copiedCmdState.value = null;
+    }
+    copyResetTimer = null;
+  }, 2200);
+}
+
+function handleTabTrap(e: KeyboardEvent) {
+  const panel = modalPanelRef.value;
+  if (!panel) return;
+  const focusable = Array.from(
+    panel.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((el) => !el.hasAttribute("hidden"));
+  if (focusable.length === 0) {
+    e.preventDefault();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+
+  if (e.shiftKey) {
+    if (active === first || !panel.contains(active)) {
+      e.preventDefault();
+      last.focus();
+    }
+  } else if (active === last || !panel.contains(active)) {
+    e.preventDefault();
+    first.focus();
   }
 }
 
 function handleKeyDown(e: KeyboardEvent) {
   if (!activeModalRepoId.value) return;
+
+  if (e.key === "Tab") {
+    handleTabTrap(e);
+    return;
+  }
+
+  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+  const target = e.target as HTMLElement | null;
+  const tagName = target?.tagName;
+  if (tagName === "INPUT" || tagName === "TEXTAREA") return;
+
   if (e.key === "Escape") {
+    e.preventDefault();
     closeRepoModal();
   } else if (e.key === "ArrowRight") {
+    e.preventDefault();
     stepModalRepo(1);
   } else if (e.key === "ArrowLeft") {
+    e.preventDefault();
     stepModalRepo(-1);
   }
 }
 
-watch(activeModalRepoId, (val) => {
-  if (typeof document !== "undefined") {
-    document.documentElement.style.overflow = val ? "hidden" : "";
-    document.body.style.overflow = val ? "hidden" : "";
+watch(activeModalRepoId, async (val, prevVal) => {
+  if (typeof document === "undefined") return;
+  document.documentElement.style.overflow = val ? "hidden" : "";
+  document.body.style.overflow = val ? "hidden" : "";
+
+  await nextTick();
+  if (val && !prevVal) {
+    closeBtnRef.value?.focus();
+  } else if (
+    !val &&
+    lastFocusedElement &&
+    lastFocusedElement.isConnected &&
+    lastFocusedElement !== document.body
+  ) {
+    lastFocusedElement.focus();
+    lastFocusedElement = null;
   }
 });
 
@@ -118,20 +204,33 @@ onMounted(async () => {
     }
   }
 
+  fetchAbortController = new AbortController();
   try {
-    const res = await fetch("/api/repos");
+    const res = await fetch("/api/repos", { signal: fetchAbortController.signal });
     if (res.ok) {
       const data = (await res.json()) as { repos?: LiLabsRepo[] };
-      if (data.repos && data.repos.length > 0) {
-        repos.value = data.repos;
+      if (Array.isArray(data.repos) && data.repos.length > 0) {
+        repos.value = data.repos.map((repo) => ({
+          ...repo,
+          homepage: sanitizeHttpUrl(repo.homepage),
+        }));
       }
     }
-  } catch {
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      return;
+    }
     // Fallback to static verified snapshot
   }
 });
 
 onUnmounted(() => {
+  fetchAbortController?.abort();
+  fetchAbortController = null;
+  if (copyResetTimer !== null) {
+    clearTimeout(copyResetTimer);
+    copyResetTimer = null;
+  }
   window.removeEventListener("keydown", handleKeyDown);
   if (typeof document !== "undefined") {
     document.documentElement.style.overflow = "";
@@ -184,8 +283,13 @@ onUnmounted(() => {
         <article
           v-for="(repo, idx) in filteredRepos"
           :key="repo.id"
+          role="button"
+          tabindex="0"
+          :aria-label="`Inspect ${repo.displayName} repository details`"
           @click="openRepoModal(repo.id)"
-          class="group p-6 bg-[#050505] hover:bg-[#0d0d0d] flex flex-col justify-between cursor-pointer transition-colors"
+          @keydown.enter.prevent="openRepoModal(repo.id)"
+          @keydown.space.prevent="openRepoModal(repo.id)"
+          class="group p-6 bg-[#050505] hover:bg-[#0d0d0d] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#facc15] flex flex-col justify-between cursor-pointer transition-colors"
         >
           <div class="space-y-4">
             <div class="flex items-center justify-between text-[11px] font-mono text-neutral-500">
@@ -242,6 +346,7 @@ onUnmounted(() => {
         @wheel.stop
       >
         <div
+          ref="modalPanelRef"
           class="relative w-full max-w-2xl max-h-[85dvh] flex flex-col bg-[#080808] border border-white/20 text-white shadow-2xl overflow-hidden"
         >
           <!-- Modal Header -->
@@ -267,10 +372,11 @@ onUnmounted(() => {
             </div>
 
             <button
+              ref="closeBtnRef"
               type="button"
               @click="closeRepoModal"
               aria-label="Close modal"
-              class="w-8 h-8 flex items-center justify-center border border-white/15 bg-[#121212] hover:bg-white hover:text-black text-neutral-300 font-mono text-xs transition-colors cursor-pointer shrink-0"
+              class="w-8 h-8 flex items-center justify-center border border-white/15 bg-[#121212] hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#facc15] text-neutral-300 font-mono text-xs transition-colors cursor-pointer shrink-0"
             >
               ✕
             </button>
@@ -329,7 +435,8 @@ onUnmounted(() => {
             <!-- Action Buttons -->
             <div class="flex flex-wrap items-center gap-2.5 font-mono text-xs pt-1">
               <a
-                :href="modalRepo.url"
+                v-if="safeRepoUrl"
+                :href="safeRepoUrl"
                 target="_blank"
                 rel="noreferrer"
                 class="px-4 py-2 bg-white hover:bg-[#facc15] text-black font-semibold transition-colors"
@@ -337,8 +444,8 @@ onUnmounted(() => {
                 GITHUB ↗
               </a>
               <a
-                v-if="modalRepo.latestRelease"
-                :href="modalRepo.latestRelease.url"
+                v-if="modalRepo.latestRelease && safeReleaseUrl"
+                :href="safeReleaseUrl"
                 target="_blank"
                 rel="noreferrer"
                 class="px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-[#facc15]/50 text-[#facc15] transition-colors"
@@ -346,8 +453,8 @@ onUnmounted(() => {
                 RELEASE {{ modalRepo.latestRelease.tag }} ↗
               </a>
               <a
-                v-if="modalRepo.homepage"
-                :href="modalRepo.homepage"
+                v-if="safeHomepageUrl"
+                :href="safeHomepageUrl"
                 target="_blank"
                 rel="noreferrer"
                 class="px-4 py-2 bg-[#121212] hover:bg-[#1d1d1d] border border-white/20 text-white transition-colors"
@@ -360,8 +467,10 @@ onUnmounted(() => {
                 class="px-3.5 py-2 bg-[#111111] hover:bg-[#1a1a1a] border border-white/15 text-neutral-300 cursor-pointer transition-colors"
               >
                 {{
-                  copiedCmd === modalRepo.id
-                    ? "✓ COPIED"
+                  copiedCmdState?.id === modalRepo.id
+                    ? copiedCmdState.status === "copied"
+                      ? "✓ COPIED"
+                      : "COPY FAILED — PRESS CTRL/CMD+C"
                     : "$ git clone LiLabsAI/" + modalRepo.name
                 }}
               </button>

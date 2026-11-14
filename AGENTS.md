@@ -15,7 +15,7 @@
   - When provided with brand logos or reference images, use them for visual inspiration, navbar branding, favicons, or 3D geometry—never create a logo download list or asset gallery unless explicitly asked.
 - **Product Catalog (`/product`)**:
   - Clicking a product card opens a centered **Product Detail Modal** (`ProductCatalogVue.vue`) rather than scrolling to a bottom inspector panel.
-  - Do not include "Live Engineering Sandboxes", "3D Isometric SVG Pipelines", or "Proposed Best Practices" on `/product`; present verified repository facts under clear **"Details"**, **"Features & Highlights"**, **"Requirements & Stack"**, and **"Releases & Artifacts"** headings grounded in each repository's actual `README.md`.
+  - Do not include "Live Engineering Sandboxes", "3D Isometric SVG Pipelines", or "Proposed Best Practices" on `/product`; keep the Product Detail Modal concise and accessible, grounded in verified facts from each repository's actual `README.md`.
 
 ## 2. Architecture & Build Invariants
 
@@ -23,5 +23,5 @@
 - **pnpm v12 Build Scripts**: Maintain `allowBuilds: { esbuild: true, workerd: true }` in `pnpm-workspace.yaml` and `@vitejs/plugin-react: ^5.2.0` (compatible with Vite 7).
 - **Cloudflare Workers Deployment (`lilabs-web`)**:
   - Build: `pnpm run build` (`vite build && node scripts/build-cf.mjs`)
-  - Deploy: `pnpm run deploy` (`npm run build && cf deploy --prebuilt --mode production`)
+  - Deploy: `pnpm run deploy` (`pnpm run build && pnpm exec cf deploy --prebuilt --mode production`)
   - Target custom domain: `https://lilabs.aliahad.com` (with `observability.enabled = true` and `observability.traces.enabled = true` in `cloudflare.config.ts`).

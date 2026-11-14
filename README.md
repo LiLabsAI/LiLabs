@@ -13,10 +13,10 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
 ## Preview
 
 ### `/` — Interactive 3D & 3D SVG Neural Network Showcase
-![LI Labs Home — 3D Neural Network & Model Fine-Tuning Showcase](./public/preview/home-minimal.png)
+![LI Labs Home — 3D Neural Network & Model Fine-Tuning Showcase](./docs/preview/home-minimal.png)
 
 ### `/product` — Open-Source Ecosystem & Interactive Product Detail Modals
-![LI Labs Product Catalog](./public/preview/product-minimal.png)
+![LI Labs Product Catalog](./docs/preview/product-minimal.png)
 
 ---
 
@@ -42,7 +42,7 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
 | **3D & App Shell** | React 19 + Three.js (`WebGLRenderer`, custom vertex-colored shaders & instanced geometry) |
 | **3D SVG Overlay & Catalog** | Vue.js 3.5 (mounted via `VueBridge.tsx` and synchronized at 60fps via `labStore.ts`) |
 | **Styling** | Tailwind CSS v4 |
-| **Edge Runtime** | Cloudflare Workers (`lilabs-web`) with static asset routing & JSON API endpoints (`/api/repos`, `/api/architecture`, `/api/health`) |
+| **Edge Runtime** | Cloudflare Workers (`lilabs-web`) with MPA static asset routing, `/404.html`, and JSON API endpoints (`/api/repos`, `/api/health`, `/healthz`) |
 
 ---
 
@@ -50,16 +50,19 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
 
 ```text
 .
+├── .github/workflows/ci.yml   # Typecheck, lint, test, and build verification
 ├── AGENTS.md                  # Design & engineering guardrails for AI agents
 ├── LICENSE                    # GNU General Public License v3.0 (GPL-3.0)
 ├── cloudflare.config.ts       # Cloudflare Worker configuration (observability + traces enabled)
+├── docs/preview/              # Repository preview screenshots
 ├── index.html                 # Entry HTML for `/` (Full-screen 3D neural showcase)
 ├── product/
-│   └── index.html             # Entry HTML for `/product` (Repository catalog & sandboxes)
+│   └── index.html             # Entry HTML for `/product` (Repository catalog)
 ├── public/
-│   ├── brand/                 # Official LI Labs SVG/PNG marks
-│   ├── illustrations/         # Architectural SVG diagrams
-│   └── preview/               # Repository preview screenshots
+│   ├── 404.html               # Custom 404 page
+│   ├── _headers               # Cloudflare static asset security & caching headers
+│   ├── brand/                 # Monochrome LI Labs SVG mark
+│   └── favicon.svg            # Site icon
 ├── scripts/
 │   └── build-cf.mjs           # Bundles Vite static assets + Worker into `.cloudflare/output`
 └── src/
@@ -72,11 +75,12 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
     │       ├── NeuralSvgOverlayVue.vue         # 3D-projected SVG synaptic overlay on `/`
     │       └── ProductCatalogVue.vue           # Repository matrix & Product Detail Modal
     ├── data/
-    │   └── repos.ts           # Verified metadata, details, highlights & requirements for LiLabsAI repos
+    │   └── repos.ts           # Verified metadata, highlights & requirements for LiLabsAI repos
     ├── store/
     │   └── labStore.ts        # Shared reactive store across React 19, Vue 3.5 & Three.js
     ├── styles/
     │   └── main.css           # Minimalist monochrome + Yellow/Red/Pink design tokens
+    ├── utils/                 # Shared font activation and URL sanitization utilities
     └── worker.ts              # Cloudflare Worker entry point & API handlers
 ```
 
@@ -86,14 +90,16 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
 
 ### Prerequisites
 - Node.js 22+
-- `pnpm` 10+ / 12+
+- `pnpm` 12+
 - Cloudflare `cf` CLI (for deployment)
 
-### Install & Run Locally
+### Install, Check & Run Locally
 
 ```bash
 pnpm install
-pnpm run dev
+pnpm run check       # Runs typecheck (tsc + vue-tsc), Biome lint, and Vitest suite
+pnpm run dev         # Starts Vite frontend dev server
+pnpm run dev:worker  # Runs local Cloudflare Worker dev server via cf dev
 ```
 
 ### Build for Production (Vite + Cloudflare Worker Bundle)

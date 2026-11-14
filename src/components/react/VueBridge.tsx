@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from "react";
-import { createApp, type App as VueApp, type Component } from "vue";
+import type React from "react";
+import { useEffect, useRef } from "react";
+import { type App as VueApp, type Component, createApp, h, reactive } from "vue";
 
 interface VueBridgeProps {
   component: Component;
@@ -7,9 +8,22 @@ interface VueBridgeProps {
   className?: string;
 }
 
+function syncPropsState(target: Record<string, unknown>, source: Record<string, unknown>) {
+  for (const key of Object.keys(target)) {
+    if (!(key in source)) {
+      delete target[key];
+    }
+  }
+  for (const [key, value] of Object.entries(source)) {
+    if (target[key] !== value) {
+      target[key] = value;
+    }
+  }
+}
+
 /**
  * Mounts a Vue.js 3 Single-File Component inside a React 19 component tree,
- * sharing real-time state through `src/store/labStore.ts`.
+ * forwarding prop updates reactively and sharing state through `src/store/labStore.ts`.
  */
 export const VueBridge: React.FC<VueBridgeProps> = ({
   component,
@@ -18,20 +32,40 @@ export const VueBridge: React.FC<VueBridgeProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const appRef = useRef<VueApp | null>(null);
+  const latestPropsRef = useRef<Record<string, unknown>>(componentProps);
+  const reactivePropsRef = useRef<Record<string, unknown> | null>(null);
+
+  latestPropsRef.current = componentProps;
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const app = createApp(component, componentProps);
+    const propsState = reactive<Record<string, unknown>>({});
+    syncPropsState(propsState, latestPropsRef.current);
+    reactivePropsRef.current = propsState;
+
+    const app = createApp({
+      name: "VueBridgeHost",
+      setup() {
+        return () => h(component, { ...propsState });
+      },
+    });
     app.mount(containerRef.current);
     appRef.current = app;
 
     return () => {
+      reactivePropsRef.current = null;
       if (appRef.current) {
         appRef.current.unmount();
         appRef.current = null;
       }
     };
   }, [component]);
+
+  useEffect(() => {
+    if (reactivePropsRef.current) {
+      syncPropsState(reactivePropsRef.current, componentProps);
+    }
+  }, [componentProps]);
 
   return <div ref={containerRef} className={className} data-runtime="vue-3.5" />;
 };

@@ -1,4 +1,5 @@
-import React from "react";
+import type React from "react";
+import { LILABS_REPOS } from "../../data/repos";
 import { labActions, useLabStore } from "../../store/labStore";
 
 export const LiMarkSvg: React.FC<{ className?: string }> = ({ className = "w-6 h-6" }) => (
@@ -49,7 +50,7 @@ export const SiteHeader: React.FC<{ activePage: "home" | "product" }> = ({ activ
             INDEX
           </a>
           <a
-            href="/product"
+            href="/product/"
             className={`transition-colors flex items-center gap-1.5 ${
               activePage === "product"
                 ? "text-white"
@@ -161,8 +162,8 @@ export const SiteFooter: React.FC<{ activePage?: "home" | "product" }> = ({
           <a href="/" className="hover:text-white transition-colors">
             INDEX
           </a>
-          <a href="/product" className="hover:text-white transition-colors">
-            PRODUCT (9)
+          <a href="/product/" className="hover:text-white transition-colors">
+            PRODUCT ({LILABS_REPOS.length})
           </a>
           <a
             href="https://github.com/LiLabsAI"

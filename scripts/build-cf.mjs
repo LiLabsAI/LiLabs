@@ -1,12 +1,24 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import * as esbuild from "esbuild";
-import * as configApi from "@cloudflare/config";
 import * as outputApi from "@cloudflare/build-output-utils";
+import * as configApi from "@cloudflare/config";
+import * as esbuild from "esbuild";
 
 const root = path.resolve(import.meta.dirname, "..");
 const mode = process.env.CF_MODE ?? "production";
-const context = { isPreview: false, mode };
+const isPreview = process.env.CF_PREVIEW === "1";
+const context = { isPreview, mode };
+
+const distDir = path.join(root, "dist");
+const requiredArtifacts = ["index.html", path.join("product", "index.html"), "404.html"];
+for (const relPath of requiredArtifacts) {
+  const fullPath = path.join(distDir, relPath);
+  try {
+    await fs.access(fullPath);
+  } catch {
+    throw new Error(`Missing built artifact '${relPath}' in dist/. Run 'vite build' first.`);
+  }
+}
 
 const loaded = await configApi.loadAndParseConfig(path.join(root, "cloudflare.config.ts"), context);
 if (!loaded.result.success) {
@@ -46,8 +58,10 @@ await outputApi.writeWorkerConfig({
 });
 
 if (configuration.worker.assets) {
-  await outputApi.writeAssets({ root, sourceDirectory: path.join(root, "dist") });
+  await outputApi.writeAssets({ root, sourceDirectory: distDir });
 }
 
 await outputApi.readBuildOutput(root);
-console.log(`Built Cloudflare Worker '${configuration.worker.name}' + static assets into .cloudflare/output/v0/`);
+console.log(
+  `Built Cloudflare Worker '${configuration.worker.name}' (${mode}${isPreview ? ", preview" : ""}) + static assets into .cloudflare/output/v0/`,
+);
