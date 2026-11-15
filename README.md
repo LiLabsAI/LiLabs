@@ -28,8 +28,8 @@ Official website and interactive 3D neural network showcase for **[LI Labs](http
   - **Synchronized 3D-to-2D SVG Overlay**: Vue.js 3.5 reactive SVG layer projecting live 3D layer centroids into 2D screen space to render residual skip-connections, magnetic cursor-to-neuron Bézier filaments, and fine-tuning wave rings.
   - **Minimalist Monochrome Palette with Signal Accents**: Pure black (`#040404`) and white (`#FFFFFF`) canvas accented with **Yellow (`#FACC15`)**, **Red (`#EF4444`)**, and **Pink (`#EC4899`)** neural signals.
   - **Mouse-Driven Interaction**: Smooth frame-rate-independent pointer orbit (`alpha = 1 - Math.pow(1 - 0.055, dt * 60)`), magnetic neuron excitation, click-to-trigger fine-tuning shockwaves, 360° drag rotation, and smooth wheel zoom.
-- **Open-Source Repository Showcase (`/product`)**:
-  - Showcases all 10 **LI Labs** repositories (`offmind`, `LiVoice`, `LiResearch`, `LiEffects`, `LiSound`, `LiPlayer`, `ainewshot`, `SoundVault`, `LiLabs`, `.github`) in a minimalist monochrome grid.
+- **Open-Source Product Catalog (`/product`)**:
+  - Showcases all 8 **LI Labs** product projects (`offmind`, `LiVoice`, `LiResearch`, `LiEffects`, `LiSound`, `LiPlayer`, `ainewshot`, `SoundVault`) in a minimalist monochrome grid.
   - Clicking any repository opens an accessible **Product Detail Modal** with verified **Details**, **Features & Highlights**, **Requirements & Stack**, and **Releases & Artifacts**.
 
 ---

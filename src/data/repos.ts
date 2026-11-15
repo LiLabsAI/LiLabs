@@ -22,8 +22,7 @@ export interface LiLabsRepo {
     | "AI & On-Device ML"
     | "Audio & Media DSP"
     | "Creative & Shaders"
-    | "Research & Workspace"
-    | "Org & Infrastructure";
+    | "Research & Workspace";
   platforms: ("Android" | "macOS Apple Silicon" | "Cloudflare Edge" | "Web")[];
   primaryLanguage: string;
   languages: Record<string, number>;
@@ -59,7 +58,7 @@ export const LILABS_ORG = {
   description:
     "LI Labs is an independent software and AI research initiative founded by Ali Ahad. We build intelligent applications, creative tools, and developer-focused software across Android, macOS Apple Silicon, and the web.",
   stats: {
-    publicRepos: 10,
+    publicRepos: 8,
     totalReleases: 24,
     coreLanguages: ["C++", "Kotlin", "Swift", "TypeScript", "AGSL / Vulkan / Metal"],
     license: "GPL-3.0",
@@ -855,112 +854,6 @@ export const LILABS_REPOS: LiLabsRepo[] = [
         title: "Lock-Screen Controls, Custom Skip Steps & Night/Light UI",
         description:
           "Full MediaSessionService integration with independent skip-back/skip-forward intervals (5s, 10s, 20s, 1m), audio focus handling, haptic feedback, track detail sheet, and Night/Light themes.",
-      },
-    ],
-  },
-  {
-    id: "LiLabs",
-    name: "LiLabs",
-    displayName: "LiLabs Website",
-    tagline: "Official website and interactive 3D & 3D SVG neural network showcase for LI Labs.",
-    description:
-      "The official website for LI Labs (lilabs.aliahad.com), featuring a full-viewport interactive 3D & 3D SVG neural network and model fine-tuning showcase on the home page and an open-source repository catalog on /product.",
-    category: "Org & Infrastructure",
-    platforms: ["Web", "Cloudflare Edge"],
-    primaryLanguage: "TypeScript",
-    languages: {
-      "TypeScript": 58420,
-      "Vue": 22027,
-      "CSS": 4200,
-      "HTML": 1950,
-    },
-    topics: ["ai", "neural-network", "threejs", "webgl", "react", "vue", "typescript", "cloudflare-workers", "gplv3"],
-    license: "GPL-3.0",
-    url: "https://github.com/LiLabsAI/LiLabs",
-    homepage: "https://lilabs.aliahad.com",
-    createdAt: "2026-11-14T15:14:00Z",
-    updatedAt: "2026-11-14T15:14:30Z",
-    stars: 0,
-    forks: 0,
-    openIssues: 0,
-    accentColor: "#ef4444",
-    featured: false,
-    latestRelease: null,
-    releases: [],
-    requirements: [
-      "Node.js 22+ and pnpm 10+",
-      "Cloudflare Workers runtime (lilabs-web)",
-      "WebGL2-capable browser for 3D neural showcase",
-    ],
-    highlights: [
-      "Full-viewport (100vw × 100dvh), zero-scroll interactive 3D + 3D SVG neural network and model fine-tuning showcase on /",
-      "Hybrid TypeScript runtime combining React 19, Vue.js 3.5, and Three.js WebGL synchronized at 60fps",
-      "Minimalist monochrome (#040404 / #FFFFFF) palette with Yellow (#FACC15), Red (#EF4444), and Pink (#EC4899) neural signal pulses",
-      "Deployed on Cloudflare Workers at lilabs.aliahad.com with live GitHub API enrichment and full observability traces",
-    ],
-    architectureSummary:
-      "Multi-page Vite 7 + TypeScript application mounting React 19 and Three.js WebGL alongside Vue.js 3.5 components via a shared reactive store, served from Cloudflare Workers.",
-    details: [
-      {
-        category: "3D NEURAL SHOWCASE",
-        title: "7-Layer 3D Transformer & Synchronized 3D SVG Filaments",
-        description:
-          "Renders 206 interactive 3D neurons, 680+ vertex-colored synaptic links, 140 traveling signal pulses, and a central 3D Li monolith with frame-rate-independent pointer orbit and magnetic cursor attraction.",
-      },
-      {
-        category: "HYBRID RUNTIME",
-        title: "React 19 + Vue.js 3.5 + Three.js on Cloudflare Workers",
-        description:
-          "Synchronizes 3D WebGL camera projections with a reactive Vue 3.5 SVG overlay and serves live repository metadata from the Cloudflare Edge at lilabs.aliahad.com.",
-      },
-    ],
-  },
-  {
-    id: "dot-github",
-    name: ".github",
-    displayName: "LiLabsAI/.github",
-    tagline: "Organization profile, banner graphics, and open-source governance for LI Labs.",
-    description:
-      "Organization profile repository for https://github.com/LiLabsAI containing the public organization README, brand banner assets, and links to flagship LI Labs projects.",
-    category: "Org & Infrastructure",
-    platforms: ["Web"],
-    primaryLanguage: "Markdown",
-    languages: {
-      "Markdown": 4096,
-    },
-    topics: ["organization-profile", "governance", "brand-identity", "open-source", "gplv3"],
-    license: "GPL-3.0",
-    url: "https://github.com/LiLabsAI/.github",
-    homepage: "https://lilabs.aliahad.com",
-    createdAt: "2026-11-14T08:05:51Z",
-    updatedAt: "2026-11-14T08:05:53Z",
-    stars: 0,
-    forks: 0,
-    openIssues: 0,
-    accentColor: "#ffffff",
-    featured: false,
-    latestRelease: null,
-    releases: [],
-    requirements: ["GitHub Organization Profile (profile/README.md)"],
-    highlights: [
-      "Official GitHub organization profile README (profile/README.md) and banner graphics (profile/assets/banner.png)",
-      "Presents LI Labs' core focus areas: Artificial Intelligence & Machine Learning, Software Engineering, Mobile & Desktop Applications, and R&D",
-      "Links flagship open-source projects (LiEffects, LiResearch, Offmind, AI News Hot) and official domains (lilabs.aliahad.com, aliahad.com)",
-    ],
-    architectureSummary:
-      "GitHub organization metadata repository rendering the public profile header, mission overview, and project directory on github.com/LiLabsAI.",
-    details: [
-      {
-        category: "ORGANIZATION PROFILE",
-        title: "Public Landing Profile on github.com/LiLabsAI",
-        description:
-          "Houses profile/README.md and profile/assets/banner.png displayed at the top of the LiLabsAI GitHub organization page.",
-      },
-      {
-        category: "OPEN-SOURCE IDENTITY",
-        title: "Unified GPLv3 Licensing & Project Directory",
-        description:
-          "Connects developers to LI Labs' flagship Android, macOS Apple Silicon, and AI research repositories founded by Ali Ahad.",
       },
     ],
   },

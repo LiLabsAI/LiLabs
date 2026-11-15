@@ -23,7 +23,6 @@ const categories = [
   "Audio & Media DSP",
   "Creative & Shaders",
   "Research & Workspace",
-  "Org & Infrastructure",
 ];
 
 const filteredRepos = computed(() => {
@@ -218,10 +217,14 @@ onMounted(async () => {
     if (res.ok) {
       const data = (await res.json()) as { repos?: LiLabsRepo[] };
       if (Array.isArray(data.repos) && data.repos.length > 0) {
-        repos.value = data.repos.map((repo) => ({
-          ...repo,
-          homepage: sanitizeHttpUrl(repo.homepage),
-        }));
+        const productIds = new Set(LILABS_REPOS.map((r) => r.id));
+        const filtered = data.repos.filter((repo) => productIds.has(repo.id));
+        if (filtered.length > 0) {
+          repos.value = filtered.map((repo) => ({
+            ...repo,
+            homepage: sanitizeHttpUrl(repo.homepage),
+          }));
+        }
       }
     }
   } catch (err) {
@@ -254,7 +257,7 @@ onUnmounted(() => {
       <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 pb-8 border-b border-[var(--border-subtle)]">
         <div class="space-y-2">
           <div class="text-[11px] font-mono tracking-[0.24em] uppercase text-[var(--text-muted)] tabular-nums">
-            GITHUB.COM/LILABSAI // {{ repos.length }} REPOSITORIES
+            GITHUB.COM/LILABSAI // {{ repos.length }} PRODUCTS
           </div>
           <h1 class="text-3xl sm:text-5xl font-bold tracking-[-0.02em] text-[var(--text-strong)] text-balance">
             Products &amp; Open-Source Systems
@@ -321,19 +324,8 @@ onUnmounted(() => {
           class="group ui-card p-6 bg-[var(--bg-surface)] border-r border-b border-[var(--border-subtle)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-focus)] flex flex-col justify-between cursor-pointer"
         >
           <div class="space-y-4">
-            <div class="flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
-              <span class="tabular-nums">{{ String(idx + 1).padStart(2, "0") }} / {{ repo.primaryLanguage }}</span>
-              <span
-                class="w-2 h-2 rounded-full ui-card-dot ring-1 ring-[var(--dot-ring)] shrink-0"
-                :style="{
-                  backgroundColor:
-                    idx % 3 === 0
-                      ? 'var(--accent-yellow)'
-                      : idx % 3 === 1
-                        ? 'var(--accent-pink)'
-                        : 'var(--accent-red)',
-                }"
-              />
+            <div class="text-[11px] font-mono text-[var(--text-muted)] tabular-nums">
+              {{ String(idx + 1).padStart(2, "0") }} / {{ repo.primaryLanguage }}
             </div>
 
             <div class="flex items-baseline justify-between gap-2">
@@ -439,15 +431,8 @@ onUnmounted(() => {
                   class="flex items-start gap-2.5 text-xs text-[var(--text-control)] leading-relaxed max-w-[65ch]"
                 >
                   <span
-                    class="mt-1.5 w-1.5 h-1.5 rounded-full ring-1 ring-[var(--dot-ring)] shrink-0"
-                    :style="{
-                      backgroundColor:
-                        hIdx % 3 === 0
-                          ? 'var(--accent-yellow)'
-                          : hIdx % 3 === 1
-                            ? 'var(--accent-pink)'
-                            : 'var(--accent-red)',
-                    }"
+                    aria-hidden="true"
+                    class="mt-2 w-1 h-1 bg-[var(--text-muted)] shrink-0"
                   />
                   <span>{{ item }}</span>
                 </li>

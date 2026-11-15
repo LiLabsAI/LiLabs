@@ -213,7 +213,6 @@
   transform: scale(0.992);
 }
 
-.ui-card-dot,
 .ui-card-arrow,
 .ui-brand-mark {
   transition:
@@ -224,10 +223,6 @@
 @media (hover: hover) and (pointer: fine) {
   .ui-card:hover {
     background-color: var(--bg-surface-hover);
-  }
-
-  .ui-card:hover .ui-card-dot {
-    transform: scale(1.25);
   }
 
   .ui-card:hover .ui-card-arrow {
@@ -282,7 +277,6 @@
 
   .ui-pressable:active:not(:disabled),
   .ui-card:active,
-  .ui-card:hover .ui-card-dot,
   .ui-card:hover .ui-card-arrow,
   .group:hover .ui-brand-mark {
     transform: none;

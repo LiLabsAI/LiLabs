@@ -20,11 +20,16 @@ describe("ProductCatalogVue", () => {
     vi.restoreAllMocks();
   });
 
-  it("renders all verified repositories and filters by search query", async () => {
+  it("renders all 8 product repositories without decorative card dots or infra entries and filters by search", async () => {
     const wrapper = mount(ProductCatalogVue, { attachTo: document.body });
     await flushPromises();
 
-    expect(wrapper.findAll("article")).toHaveLength(LILABS_REPOS.length);
+    expect(LILABS_REPOS).toHaveLength(8);
+    expect(wrapper.findAll("article")).toHaveLength(8);
+    expect(wrapper.findAll(".ui-card-dot")).toHaveLength(0);
+    expect(wrapper.text()).not.toContain("LiLabs Website");
+    expect(wrapper.text()).not.toContain("LiLabsAI/.github");
+    expect(wrapper.text()).not.toContain("Org & Infrastructure");
 
     const search = wrapper.find('input[type="search"], input[placeholder*="Search"]');
     expect(search.exists()).toBe(true);
